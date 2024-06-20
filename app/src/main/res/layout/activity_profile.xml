@@ -8,7 +8,8 @@
         android:id="@+id/profileImageView"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/profile_placeholder" />
+
+        />
 
     <TextView
         android:id="@+id/usernameTextView"
