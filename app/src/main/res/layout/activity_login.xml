@@ -24,12 +24,11 @@
             android:id="@+id/usernameLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="USERNAME"
-            android:textStyle="bold"
             android:textColor="#000000"
             android:textSize="16sp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="16dp"/>
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/usernameEditText"
@@ -51,7 +50,7 @@
             android:textColor="#000000"
             android:textSize="16sp"
             android:layout_marginBottom="8dp"
-            android:layout_marginStart="16dp"/>
+            />
 
         <EditText
             android:id="@+id/passwordEditText"

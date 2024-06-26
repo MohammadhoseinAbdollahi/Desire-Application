@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "34424032373",
+    "firebase_url": "https://desire-d3112-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "desire-d3112",
+    "storage_bucket": "desire-d3112.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:34424032373:android:5edfdf50bfebea19c7fc3c",
+        "android_client_info": {
+          "package_name": "com.example.desire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBY2wxviF7ug5nI32jcGZNzWquOzeL54Vs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

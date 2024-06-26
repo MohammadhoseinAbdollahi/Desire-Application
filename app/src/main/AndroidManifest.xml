@@ -9,9 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <meta-data
-            android:name="com.google.android.actions"
-            android:resource="@xml/edit_text_background" />
+
         <!-- Main Activity - Login -->
         <activity
             android:name=".LoginActivity"

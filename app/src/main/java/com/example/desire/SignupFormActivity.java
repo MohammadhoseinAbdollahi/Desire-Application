@@ -1,88 +1,147 @@
 package com.example.desire;
 
-import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.TextUtils;
-import android.text.style.StyleSpan;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.desire.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class SignupFormActivity extends AppCompatActivity {
 
+    private EditText etName, etUsername, etBirthday, etPassword, etConfirmPassword;
+    private Button btnContinue;
+    private CheckBox cbTerms;
+
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signupform);
 
-        TextView signupButtonTextView = findViewById(R.id.signupButtonTextView);
-        signupButtonTextView.setOnClickListener(new View.OnClickListener() {
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+        // Initialize Firebase Database
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
+
+        etName = findViewById(R.id.et_name);
+        etUsername = findViewById(R.id.et_username);
+        etBirthday = findViewById(R.id.et_birthday);
+        etPassword = findViewById(R.id.et_password);
+        etConfirmPassword = findViewById(R.id.et_confirm_password);
+        cbTerms = findViewById(R.id.cb_terms);
+        btnContinue = findViewById(R.id.btn_continue);
+
+        btnContinue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                performSignup();
+                signUp();
             }
         });
-
-        TextView googleSignupTextView = findViewById(R.id.googleSignupTextView);
-        googleSignupTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                performGoogleSignup();
-            }
-        });
-
-        TextView termsAndConditionsTextView = findViewById(R.id.termsAndConditionsTextView);
-        String fullText = "By clicking continue, you agree to our Terms of Service and Privacy Policy";
-
-        SpannableString spannableString = new SpannableString(fullText);
-
-        int indexOfTermsOfService = fullText.indexOf("Terms of Service");
-        int indexOfPrivacyPolicy = fullText.indexOf("Privacy Policy");
-
-        spannableString.setSpan(new StyleSpan(Typeface.BOLD),
-                indexOfTermsOfService, indexOfTermsOfService + "Terms of Service".length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        spannableString.setSpan(new StyleSpan(Typeface.BOLD),
-                indexOfPrivacyPolicy, indexOfPrivacyPolicy + "Privacy Policy".length(),
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        termsAndConditionsTextView.setText(spannableString);
     }
 
-    private void performSignup() {
-        TextView emailTextView = findViewById(R.id.emailTextView);
-        String email = emailTextView.getText().toString().trim();
+    private void signUp() {
+        final String name = etName.getText().toString().trim();
+        final String username = etUsername.getText().toString().trim();
+        final String birthday = etBirthday.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String confirmPassword = etConfirmPassword.getText().toString().trim();
+        boolean termsChecked = cbTerms.isChecked();
 
-        // Since the XML provided does not include password fields,
-        // the example will proceed without password validation.
-
-        if (TextUtils.isEmpty(email)) {
-            Toast.makeText(SignupFormActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
+        // Validate input fields
+        if (name.isEmpty()) {
+            etName.setError("Name is required");
+            etName.requestFocus();
             return;
         }
 
-        // TODO: Add your signup logic here (e.g., database operation, API call)
-        boolean isSignupSuccessful = true; // Placeholder for actual signup logic
-
-        if (isSignupSuccessful) {
-            Toast.makeText(SignupFormActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(SignupFormActivity.this, "Signup failed. Please try again.", Toast.LENGTH_SHORT).show();
+        if (username.isEmpty()) {
+            etUsername.setError("Username is required");
+            etUsername.requestFocus();
+            return;
         }
-    }
 
-    private void performGoogleSignup() {
-        // TODO: Implement Google Signup logic
-        Toast.makeText(SignupFormActivity.this, "Google signup is not implemented yet", Toast.LENGTH_SHORT).show();
+        if (birthday.isEmpty()) {
+            etBirthday.setError("Birthday is required");
+            etBirthday.requestFocus();
+            return;
+        }
+
+        if (password.isEmpty()) {
+            etPassword.setError("Password is required");
+            etPassword.requestFocus();
+            return;
+        }
+
+        if (confirmPassword.isEmpty()) {
+            etConfirmPassword.setError("Confirm Password is required");
+            etConfirmPassword.requestFocus();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            etConfirmPassword.setError("Passwords do not match");
+            etConfirmPassword.requestFocus();
+            return;
+        }
+
+        if (!termsChecked) {
+            // Handle terms not accepted
+            return;
+        }
+
+        // Create a new user in Firebase Authentication (optional, depending on your app flow)
+        mAuth.createUserWithEmailAndPassword(username + "@example.com", password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign up success, update UI with the signed-in user's information
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                            if (firebaseUser != null) {
+                                // Get the user ID from Firebase Authentication
+                                String userId = firebaseUser.getUid();
+
+                                // Create User object
+                                User user = new User(userId, name, username, birthday);
+
+                                // Save the User object to Firebase Realtime Database
+                                mDatabase.child(userId).setValue(user)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    // Data saved successfully
+                                                    // Show a toast message
+                                                    Toast.makeText(SignupFormActivity.this, "Sign up successful!", Toast.LENGTH_SHORT).show();
+
+                                                    // Optionally, you can redirect to another activity or perform other actions here
+                                                } else {
+                                                    // Handle failure
+                                                    Toast.makeText(SignupFormActivity.this, "Failed to store user data.", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
+                            }
+                        } else {
+                            // Sign up failed
+                            Toast.makeText(SignupFormActivity.this, "Sign up failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 }

@@ -23,9 +23,7 @@ public class SignupActivity extends AppCompatActivity {
         TextView signupButtonTextView = findViewById(R.id.signupButtonTextView);
         signupButtonTextView.setOnClickListener(new View.OnClickListener() {
             @Override
-//            public void onClick(View v) {
-//                performSignup();
-//            }
+
             public void onClick(View v) {
                 Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
                 startActivity(intent);
