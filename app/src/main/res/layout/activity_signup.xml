@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginBottom="29dp"
-                android:background="#FF000000"
+                android:background="@drawable/rounded_button"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:paddingVertical="15dp">
@@ -98,6 +98,7 @@
                     android:text="Sign up with email"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp" />
+
             </LinearLayout>
 
             <LinearLayout

@@ -9,22 +9,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-
+        <meta-data
+            android:name="com.google.android.actions"
+            android:resource="@xml/edit_text_background" />
         <!-- Main Activity - Login -->
-        <activity android:name=".LoginActivity"
+        <activity
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Signup Activity -->
-        <activity android:name=".SignupActivity" />
-
-        <!-- Profile Activity -->
+        </activity> <!-- Signup Activity -->
+        <activity android:name=".SignupActivity" /> <!-- Signup Form Activity -->
+        <activity android:name=".SignupFormActivity" /> <!-- Profile Activity -->
         <activity android:name=".ProfileActivity" />
-
     </application>
 
 </manifest>

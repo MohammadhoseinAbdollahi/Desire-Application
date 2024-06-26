@@ -10,25 +10,22 @@ import android.text.style.StyleSpan;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
-public class SignupActivity extends AppCompatActivity {
+public class SignupFormActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_signup);
+        setContentView(R.layout.activity_signupform);
 
         TextView signupButtonTextView = findViewById(R.id.signupButtonTextView);
         signupButtonTextView.setOnClickListener(new View.OnClickListener() {
             @Override
-//            public void onClick(View v) {
-//                performSignup();
-//            }
             public void onClick(View v) {
-                Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
-                startActivity(intent);
+                performSignup();
             }
         });
 
@@ -48,11 +45,11 @@ public class SignupActivity extends AppCompatActivity {
         int indexOfTermsOfService = fullText.indexOf("Terms of Service");
         int indexOfPrivacyPolicy = fullText.indexOf("Privacy Policy");
 
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD),
+        spannableString.setSpan(new StyleSpan(Typeface.BOLD),
                 indexOfTermsOfService, indexOfTermsOfService + "Terms of Service".length(),
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD),
+        spannableString.setSpan(new StyleSpan(Typeface.BOLD),
                 indexOfPrivacyPolicy, indexOfPrivacyPolicy + "Privacy Policy".length(),
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -67,7 +64,7 @@ public class SignupActivity extends AppCompatActivity {
         // the example will proceed without password validation.
 
         if (TextUtils.isEmpty(email)) {
-            Toast.makeText(SignupActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
+            Toast.makeText(SignupFormActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -75,17 +72,17 @@ public class SignupActivity extends AppCompatActivity {
         boolean isSignupSuccessful = true; // Placeholder for actual signup logic
 
         if (isSignupSuccessful) {
-            Toast.makeText(SignupActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(SignupActivity.this, ProfileActivity.class);
+            Toast.makeText(SignupFormActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
             startActivity(intent);
             finish();
         } else {
-            Toast.makeText(SignupActivity.this, "Signup failed. Please try again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(SignupFormActivity.this, "Signup failed. Please try again.", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void performGoogleSignup() {
         // TODO: Implement Google Signup logic
-        Toast.makeText(SignupActivity.this, "Google signup is not implemented yet", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SignupFormActivity.this, "Google signup is not implemented yet", Toast.LENGTH_SHORT).show();
     }
 }
