@@ -49,7 +49,6 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         profileImageView = findViewById(R.id.ProfileImage);
-        profileNameCheckBox = findViewById(R.id.ProfileNameCheckBox);
 
         // Get the user ID from the intent or SharedPreferences
         userId = getIntent().getStringExtra("userId");
