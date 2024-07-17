@@ -12,17 +12,34 @@
 
         <!-- Main Activity - Login -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Signup Activity -->
-        <activity android:name=".SignupActivity" /> <!-- Signup Form Activity -->
-        <activity android:name=".SignupFormActivity" /> <!-- Profile Activity -->
-        <activity android:name=".ProfileActivity" />
+        </activity>
+
+        <!-- Signup Activity -->
+        <activity
+            android:name=".SignupActivity"
+            android:exported="false" />
+
+        <!-- Signup Form Activity -->
+        <activity
+            android:name=".SignupFormActivity"
+            android:exported="false" />
+
+        <!-- Profile Activity -->
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+
+        <!-- Login Activity -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
