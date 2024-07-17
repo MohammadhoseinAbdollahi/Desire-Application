@@ -16,16 +16,17 @@ public class SignupActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
         TextView signupButtonTextView = findViewById(R.id.signupButtonTextView);
         signupButtonTextView.setOnClickListener(new View.OnClickListener() {
             @Override
-
             public void onClick(View v) {
+                TextView EmailSignupTextView = findViewById(R.id.emailsignup);
                 Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
+                String emailText = EmailSignupTextView.getText().toString();
+                intent.putExtra("emailText", emailText);
                 startActivity(intent);
             }
         });
@@ -37,53 +38,25 @@ public class SignupActivity extends AppCompatActivity {
                 performGoogleSignup();
             }
         });
-
         TextView termsAndConditionsTextView = findViewById(R.id.termsAndConditionsTextView);
         String fullText = "By clicking continue, you agree to our Terms of Service and Privacy Policy";
 
         SpannableString spannableString = new SpannableString(fullText);
-
         int indexOfTermsOfService = fullText.indexOf("Terms of Service");
         int indexOfPrivacyPolicy = fullText.indexOf("Privacy Policy");
 
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD),
+        spannableString.setSpan(new StyleSpan(Typeface.BOLD),
                 indexOfTermsOfService, indexOfTermsOfService + "Terms of Service".length(),
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD),
+        spannableString.setSpan(new StyleSpan(Typeface.BOLD),
                 indexOfPrivacyPolicy, indexOfPrivacyPolicy + "Privacy Policy".length(),
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         termsAndConditionsTextView.setText(spannableString);
     }
 
-    private void performSignup() {
-        TextView emailTextView = findViewById(R.id.emailTextView);
-        String email = emailTextView.getText().toString().trim();
-
-        // Since the XML provided does not include password fields,
-        // the example will proceed without password validation.
-
-        if (TextUtils.isEmpty(email)) {
-            Toast.makeText(SignupActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // TODO: Add your signup logic here (e.g., database operation, API call)
-        boolean isSignupSuccessful = true; // Placeholder for actual signup logic
-
-        if (isSignupSuccessful) {
-            Toast.makeText(SignupActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(SignupActivity.this, ProfileActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(SignupActivity.this, "Signup failed. Please try again.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void performGoogleSignup() {
-        // TODO: Implement Google Signup logic
         Toast.makeText(SignupActivity.this, "Google signup is not implemented yet", Toast.LENGTH_SHORT).show();
     }
 }

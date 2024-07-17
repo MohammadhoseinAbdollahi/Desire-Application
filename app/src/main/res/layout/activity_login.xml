@@ -58,7 +58,6 @@
             android:layout_height="48dp"
             android:hint="Enter Password"
             android:inputType="textPassword"
-
             android:background="@drawable/edit_text_background"
             android:padding="12dp"
             android:layout_marginBottom="32dp"

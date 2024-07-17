@@ -1,20 +1,20 @@
 package com.example.desire;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.desire.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -27,11 +27,14 @@ public class SignupFormActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private String emailText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signupform);
+
+        emailText = getIntent().getStringExtra("emailText");
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -100,24 +103,24 @@ public class SignupFormActivity extends AppCompatActivity {
         }
 
         if (!termsChecked) {
-            // Handle terms not accepted
+            Toast.makeText(this, "You must agree to the terms and conditions", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Create a new user in Firebase Authentication (optional, depending on your app flow)
-        mAuth.createUserWithEmailAndPassword(username + "@example.com", password)
+        // Create a new user in Firebase Authentication
+        mAuth.createUserWithEmailAndPassword(emailText, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign up success, update UI with the signed-in user's information
+                            // Sign up success
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             if (firebaseUser != null) {
                                 // Get the user ID from Firebase Authentication
                                 String userId = firebaseUser.getUid();
 
                                 // Create User object
-                                User user = new User(userId, name, username, birthday);
+                                User user = new User(userId, emailText, name, username, birthday);
 
                                 // Save the User object to Firebase Realtime Database
                                 mDatabase.child(userId).setValue(user)
@@ -126,10 +129,10 @@ public class SignupFormActivity extends AppCompatActivity {
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()) {
                                                     // Data saved successfully
-                                                    // Show a toast message
                                                     Toast.makeText(SignupFormActivity.this, "Sign up successful!", Toast.LENGTH_SHORT).show();
-
-                                                    // Optionally, you can redirect to another activity or perform other actions here
+                                                    Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
+                                                    startActivity(intent);
+                                                    finish(); // Optional, if you want to remove this activity from the stack
                                                 } else {
                                                     // Handle failure
                                                     Toast.makeText(SignupFormActivity.this, "Failed to store user data.", Toast.LENGTH_SHORT).show();
@@ -139,9 +142,40 @@ public class SignupFormActivity extends AppCompatActivity {
                             }
                         } else {
                             // Sign up failed
-                            Toast.makeText(SignupFormActivity.this, "Sign up failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            Log.e(SignupFormActivity.class.getSimpleName(), "Sign up failed: " + task.getException().getMessage());
+                            if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                                Toast.makeText(SignupFormActivity.this, "The email address is already in use by another account.", Toast.LENGTH_SHORT).show();
+                                // Redirect to login activity if needed
+                                Intent intent = new Intent(SignupFormActivity.this, LoginActivity.class);
+                                intent.putExtra("emailText", emailText);
+                                startActivity(intent);
+                                finish(); // Optional, if you want to remove this activity from the stack
+                            } else {
+                                Toast.makeText(SignupFormActivity.this, "Sign up failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                 });
+    }
+
+    // User class to model user data
+    public static class User {
+        public String userId;
+        public String email;
+        public String name;
+        public String username;
+        public String birthday;
+
+        public User() {
+            // Default constructor required for calls to DataSnapshot.getValue(User.class)
+        }
+
+        public User(String userId, String email, String name, String username, String birthday) {
+            this.userId = userId;
+            this.email = email;
+            this.name = name;
+            this.username = username;
+            this.birthday = birthday;
+        }
     }
 }
