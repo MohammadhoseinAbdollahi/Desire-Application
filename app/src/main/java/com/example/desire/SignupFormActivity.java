@@ -16,17 +16,18 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class SignupFormActivity extends AppCompatActivity {
+
+    private static final String TAG = "SignupFormActivity";
 
     private EditText etName, etUsername, etBirthday, etPassword, etConfirmPassword;
     private Button btnContinue;
     private CheckBox cbTerms;
 
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
     private String emailText;
 
     @Override
@@ -38,8 +39,6 @@ public class SignupFormActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-        // Initialize Firebase Database
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
         etName = findViewById(R.id.et_name);
         etUsername = findViewById(R.id.et_username);
@@ -107,42 +106,47 @@ public class SignupFormActivity extends AppCompatActivity {
             return;
         }
 
+        Log.d(TAG, "Creating user with email: " + emailText);
+
         // Create a new user in Firebase Authentication
         mAuth.createUserWithEmailAndPassword(emailText, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
+                            Log.d(TAG, "User created successfully");
+
                             // Sign up success
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             if (firebaseUser != null) {
+                                Log.d(TAG, "Firebase user is not null");
+
                                 // Get the user ID from Firebase Authentication
                                 String userId = firebaseUser.getUid();
+                                Log.d(TAG, "User ID: " + userId);
+                                Toast.makeText(SignupFormActivity.this, userId, Toast.LENGTH_SHORT).show();
 
                                 // Create User object
-                                User user = new User(userId, emailText, name, username, birthday);
+                                User user = new User(userId, emailText, name, username, birthday, 2.5, 1, "", "", new String[0], new String[0], new String[0]);
 
                                 // Save the User object to Firebase Realtime Database
-                                mDatabase.child(userId).setValue(user)
-                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
-                                                    // Data saved successfully
-                                                    Toast.makeText(SignupFormActivity.this, "Sign up successful!", Toast.LENGTH_SHORT).show();
-                                                    Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
-                                                    startActivity(intent);
-                                                    finish(); // Optional, if you want to remove this activity from the stack
-                                                } else {
-                                                    // Handle failure
-                                                    Toast.makeText(SignupFormActivity.this, "Failed to store user data.", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
+                                user.saveToFirebase(new DatabaseReference.CompletionListener() {
+                                    @Override
+                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                        if (databaseError == null) {
+                                            Toast.makeText(SignupFormActivity.this, "Sign up successful!", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
+                                            intent.putExtra("userId", userId);
+                                            startActivity(intent);
+                                            finish(); // Optional, if you want to remove this activity from the stack
+                                        } else {
+                                            Toast.makeText(SignupFormActivity.this, "Failed to store user data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
                             }
                         } else {
-                            // Sign up failed
-                            Log.e(SignupFormActivity.class.getSimpleName(), "Sign up failed: " + task.getException().getMessage());
+                            Log.e(TAG, "Sign up failed: " + task.getException().getMessage());
                             if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                 Toast.makeText(SignupFormActivity.this, "The email address is already in use by another account.", Toast.LENGTH_SHORT).show();
                                 // Redirect to login activity if needed
@@ -156,26 +160,5 @@ public class SignupFormActivity extends AppCompatActivity {
                         }
                     }
                 });
-    }
-
-    // User class to model user data
-    public static class User {
-        public String userId;
-        public String email;
-        public String name;
-        public String username;
-        public String birthday;
-
-        public User() {
-            // Default constructor required for calls to DataSnapshot.getValue(User.class)
-        }
-
-        public User(String userId, String email, String name, String username, String birthday) {
-            this.userId = userId;
-            this.email = email;
-            this.name = name;
-            this.username = username;
-            this.birthday = birthday;
-        }
     }
 }

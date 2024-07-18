@@ -57,6 +57,8 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void performGoogleSignup() {
+        // Perform Google signup logic here
+
         Toast.makeText(SignupActivity.this, "Google signup is not implemented yet", Toast.LENGTH_SHORT).show();
     }
 }

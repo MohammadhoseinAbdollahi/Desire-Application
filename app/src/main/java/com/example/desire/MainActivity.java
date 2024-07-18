@@ -1,15 +1,13 @@
 package com.example.desire;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
-import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import android.widget.ImageView;
 
 public class MainActivity extends AppCompatActivity {
     private static final int SPLASH_DISPLAY_LENGTH = 3000; // 3 seconds
@@ -30,20 +28,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 // Check if user is logged in
-                FirebaseAuth auth = FirebaseAuth.getInstance();
-                FirebaseUser currentUser = auth.getCurrentUser();
-                if (currentUser != null) {
-                    // User is logged in, navigate to ProfileActivity
+                boolean isLoggedIn = checkIfLoggedIn();
+                if (isLoggedIn) {
+                    // Redirect to ProfileActivity
                     Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    intent.putExtra("userId", currentUser.getUid());
                     startActivity(intent);
                 } else {
-                    // User is not logged in, navigate to LoginActivity
+                    // Redirect to LoginActivity
                     Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                     startActivity(intent);
                 }
                 finish();
             }
         }, SPLASH_DISPLAY_LENGTH);
+    }
+
+    private boolean checkIfLoggedIn() {
+        // Add your logic to check if the user is logged in
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        return auth.getCurrentUser() != null;
     }
 }
