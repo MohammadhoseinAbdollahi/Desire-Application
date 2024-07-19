@@ -8,6 +8,7 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private static final int SPLASH_DISPLAY_LENGTH = 3000; // 3 seconds
@@ -27,25 +28,33 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                // Check if user is logged in
-                boolean isLoggedIn = checkIfLoggedIn();
-                if (isLoggedIn) {
-                    // Redirect to ProfileActivity
-                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    startActivity(intent);
+                // Check if user is logged in and userId is not null
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                if (auth.getCurrentUser() != null) {
+                    String userId = auth.getCurrentUser().getUid();
+                    if (userId != null) {
+                        // Redirect to ProfileActivity
+                        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                        intent.putExtra("userId", userId);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        // User ID is null, handle the error
+                        Toast.makeText(MainActivity.this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
+                        redirectToLogin();
+                    }
                 } else {
-                    // Redirect to LoginActivity
-                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(intent);
+                    // User is not logged in
+                    redirectToLogin();
                 }
-                finish();
             }
         }, SPLASH_DISPLAY_LENGTH);
     }
 
-    private boolean checkIfLoggedIn() {
-        // Add your logic to check if the user is logged in
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        return auth.getCurrentUser() != null;
+    private void redirectToLogin() {
+        // Redirect to LoginActivity
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

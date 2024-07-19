@@ -21,7 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
-    private EditText usernameEditText;
+    private EditText emailEditText;
     private EditText passwordEditText;
     private Button loginButton;
     private Button signupButton;
@@ -37,7 +37,7 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
-        usernameEditText = findViewById(R.id.usernameEditText);
+        emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
         signupButton = findViewById(R.id.signupButton);
@@ -59,39 +59,14 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void performLogin() {
-        final String username = usernameEditText.getText().toString().trim();
+        final String email = emailEditText.getText().toString().trim();
         final String password = passwordEditText.getText().toString().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(LoginActivity.this, "Username and Password are required", Toast.LENGTH_SHORT).show();
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(LoginActivity.this, "Email and Password are required", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Check if the username exists in the database
-        mDatabase.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    // Username found, get the corresponding email
-                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                        String email = userSnapshot.child("email").getValue(String.class);
-                        loginUser(email, password);
-                        break;
-                    }
-                } else {
-                    Toast.makeText(LoginActivity.this, "Username does not exist", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(LoginActivity.class.getSimpleName(), "Database error: " + databaseError.getMessage());
-                Toast.makeText(LoginActivity.this, "Database error. Please try again later.", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void loginUser(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override

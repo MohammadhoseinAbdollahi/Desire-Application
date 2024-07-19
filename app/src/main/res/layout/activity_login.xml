@@ -25,16 +25,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="USERNAME"
+            android:text="Email"
             android:textColor="#000000"
             android:textSize="16sp"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/usernameEditText"
+            android:id="@+id/emailEditText"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Enter Username"
+            android:hint="Enter Email"
             android:inputType="text"
             android:background="@drawable/edit_text_background"
             android:padding="12dp"

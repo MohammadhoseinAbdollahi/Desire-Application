@@ -3,13 +3,14 @@ package com.example.desire;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -21,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,6 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
 import java.io.IOException;
 
 public class ProfileActivity extends AppCompatActivity {
@@ -42,6 +45,7 @@ public class ProfileActivity extends AppCompatActivity {
     private CheckBox profileNameCheckBox;
     private String userId;
     private Uri imageUri;
+    private Button logoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,18 +53,15 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         profileImageView = findViewById(R.id.ProfileImage);
+        profileNameCheckBox = findViewById(R.id.ProfileNameCheckBox);
+        logoutButton = findViewById(R.id.logout);
 
-        // Get the user ID from the intent or SharedPreferences
+        // Get the user ID from the intent
         userId = getIntent().getStringExtra("userId");
-        if (userId == null) {
-            SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
-            userId = prefs.getString("userId", null);
-        }
 
         if (userId == null) {
-            // Handle the case where userId is null
-            Toast.makeText(this, "User ID is null", Toast.LENGTH_SHORT).show();
-            finish();
+            Toast.makeText(this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
+            redirectToLogin();
             return;
         }
 
@@ -90,6 +91,8 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Handle possible errors
+                Log.e("ProfileActivity", "Database error: " + databaseError.getMessage());
+                Toast.makeText(ProfileActivity.this, "Failed to load user data.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -99,6 +102,18 @@ public class ProfileActivity extends AppCompatActivity {
                 showImageOptions();
             }
         });
+
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                performLogout();
+            }
+        });
+    }
+
+    private void performLogout() {
+        FirebaseAuth.getInstance().signOut();
+        redirectToLogin();
     }
 
     private void showImageOptions() {
@@ -173,22 +188,24 @@ public class ProfileActivity extends AppCompatActivity {
                                         }
                                     }
                                 });
+                            } else {
+                                Toast.makeText(ProfileActivity.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
         }
     }
 
+    private void redirectToLogin() {
+        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PICK_IMAGE_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openFileChooser();
-            } else {
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openCamera();
             } else {
