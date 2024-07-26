@@ -27,7 +27,7 @@
         android:id="@+id/addDesireButton"
         android:layout_width="200dp"
         android:layout_height="80dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="25dp"
         android:text="Add a Desire !"
         android:textSize="18sp"
         android:background="@drawable/button_rounded_pink"
@@ -44,7 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="25dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/addDesireButton"
         android:layout_marginStart="16dp">
