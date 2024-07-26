@@ -2,6 +2,9 @@
     <string name="app_name">Desire</string>
 <string name="add_image">Add Image</string>
     <string name="back_button">Back</string>
+    <string name="profile_security">Profile Security</string>
+    <string name="manage_account">Manage Account</string>
+    <string name="my_followers">My Followers and Following</string>
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
     <!-- Customize your theme here. -->
     <item name="colorPrimary">@color/colorPrimary</item>
