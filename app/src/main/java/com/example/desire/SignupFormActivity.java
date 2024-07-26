@@ -127,19 +127,34 @@ public class SignupFormActivity extends AppCompatActivity {
                                 user.saveToFirebase(userId, new User.SaveToFirebaseCallback() {
                                     @Override
                                     public void onSuccess() {
-
+                                        Toast.makeText(SignupFormActivity.this, "Sign up successful!", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
+                                        intent.putExtra("userId", userId);
+                                        startActivity(intent);
+                                        finish();
                                     }
 
                                     @Override
                                     public void onFailure(Exception e) {
-
+                                        // Sign up failed
+                                        Log.e(SignupFormActivity.class.getSimpleName(), "Sign up failed: " + task.getException().getMessage());
+                                        if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                                            Toast.makeText(SignupFormActivity.this, "The email address is already in use by another account.", Toast.LENGTH_SHORT).show();
+                                            // Redirect to login activity if needed
+                                            Intent intent = new Intent(SignupFormActivity.this, LoginActivity.class);
+                                            intent.putExtra("emailText", emailText);
+                                            startActivity(intent);
+                                            finish();
+                                        } else {
+                                            Toast.makeText(SignupFormActivity.this, "Sign up failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
                                     }
                                 });
                                 Toast.makeText(SignupFormActivity.this, "Sign up successful!", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(SignupFormActivity.this, ProfileActivity.class);
                                 intent.putExtra("userId", userId);
                                 startActivity(intent);
-                                finish(); // Optional, if you want to remove this activity from the stack
+                                finish();
                             }
                         } else {
                             // Sign up failed
@@ -150,7 +165,7 @@ public class SignupFormActivity extends AppCompatActivity {
                                 Intent intent = new Intent(SignupFormActivity.this, LoginActivity.class);
                                 intent.putExtra("emailText", emailText);
                                 startActivity(intent);
-                                finish(); // Optional, if you want to remove this activity from the stack
+                                finish();
                             } else {
                                 Toast.makeText(SignupFormActivity.this, "Sign up failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             }
