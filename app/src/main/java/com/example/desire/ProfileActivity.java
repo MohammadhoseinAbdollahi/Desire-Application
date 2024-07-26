@@ -2,11 +2,11 @@ package com.example.desire;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
@@ -18,139 +18,112 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.List;
-
 public class ProfileActivity extends AppCompatActivity {
 
     private ImageView profileImageView;
     private TextView profileNameTextView;
-    private LinearLayout profileRatingLayout;
-    private TextView gainedStarsTextView;
-    private TextView givenStarsTextView;
     private TextView profileDescriptionTextView;
-    private LinearLayout myDesiresLayout;
-
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private LinearLayout desiresContainer;
     private String userId;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Initialize Firebase Auth and Database
-        mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        // Get current user
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            userId = currentUser.getUid();
-        } else {
-            // If no user is logged in, redirect to LoginActivity
-            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
-
-        // Initialize views
         profileImageView = findViewById(R.id.profileImage);
         profileNameTextView = findViewById(R.id.profileName);
-        profileRatingLayout = findViewById(R.id.profileRating);
-        gainedStarsTextView = findViewById(R.id.gainedStars);
-        givenStarsTextView = findViewById(R.id.givenStars);
         profileDescriptionTextView = findViewById(R.id.profileDescription);
-        myDesiresLayout = findViewById(R.id.myDesiresScrollView).findViewById(R.id.desireItem);
+        desiresContainer = findViewById(R.id.myDesiresScrollView).findViewById(R.id.desireItem);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            userId = currentUser.getUid();
+            mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+            loadUserProfile();
+            loadUserDesires();
+        }
 
-        // Load user data
-        loadUserData();
+        // Handle Settings Icon Click
+        ImageView settingsIcon = findViewById(R.id.settingicon);
+        settingsIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
-    private void loadUserData() {
-        DatabaseReference userRef = mDatabase.child("users").child(userId);
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+    private void loadUserProfile() {
+        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    User user = dataSnapshot.getValue(User.class);
-                    if (user != null) {
-                        // Set user data to views
-                        profileNameTextView.setText(user.name);
-                        profileDescriptionTextView.setText(user.bio);
-                        gainedStarsTextView.setText("Gained\n" + user.RateGain);
-                        givenStarsTextView.setText("Given\n" + user.RateGive);
+                    String name = dataSnapshot.child("name").getValue(String.class);
+                    String bio = dataSnapshot.child("bio").getValue(String.class);
+                    String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
 
-                        // Set rating stars
-                        int fullStars = (int) user.rating;
-                        for (int i = 0; i < fullStars; i++) {
-                            ((ImageView) profileRatingLayout.getChildAt(i)).setImageResource(R.drawable.star_fill);
-                        }
-                        if (user.rating - fullStars >= 0.5) {
-                            ((ImageView) profileRatingLayout.getChildAt(fullStars)).setImageResource(R.drawable.star_half);
-                        }
-
-                        // Load profile image
-                        if (!user.profileImageUrl.isEmpty()) {
-                            Glide.with(ProfileActivity.this)
-                                    .load(user.profileImageUrl)
-                                    .into(profileImageView);
-                        }
-
-                        // Load user's desires (posts)
-                        loadUserDesires(user.posts);
+                    profileNameTextView.setText(name);
+                    profileDescriptionTextView.setText(bio);
+                    if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                        Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(ProfileActivity.this, "Failed to load user data.", Toast.LENGTH_SHORT).show();
+                // Handle possible errors
             }
         });
     }
 
-    private void loadUserDesires(List<String> postIds) {
-        DatabaseReference postsRef = mDatabase.child("posts");
-        if (postIds != null) {
-            for (String postId : postIds) {
-                postsRef.child(postId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            Post post = dataSnapshot.getValue(Post.class);
-                            if (post != null) {
-                                // Inflate and populate desire item
-                                View desireItemView = getLayoutInflater().inflate(R.layout.desire_item, myDesiresLayout, false);
-                                ImageView desireImageView = desireItemView.findViewById(R.id.myDesiresImage);
-                                TextView desireRatingTextView = desireItemView.findViewById(R.id.desireRating);
-                                TextView desireCommentsTextView = desireItemView.findViewById(R.id.desireComments);
-                                TextView desireLocationTextView = desireItemView.findViewById(R.id.desireLocation);
-                                TextView desireDateTextView = desireItemView.findViewById(R.id.desireDate);
-                                TextView desireDescriptionTextView = desireItemView.findViewById(R.id.desireDescription);
+    private void loadUserDesires() {
+        DatabaseReference desiresRef = mDatabase.child("desires");
+        desiresRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                desiresContainer.removeAllViews(); // Clear the container first
+                if (dataSnapshot.exists() && dataSnapshot.hasChildren()) {
+                    for (DataSnapshot desireSnapshot : dataSnapshot.getChildren()) {
+                        String imageUrl = desireSnapshot.child("imageUrl").getValue(String.class);
+                        Double rating = desireSnapshot.child("rating").getValue(Double.class);
+                        Integer comments = desireSnapshot.child("comments").getValue(Integer.class);
+                        String location = desireSnapshot.child("location").getValue(String.class);
+                        String date = desireSnapshot.child("date").getValue(String.class);
+                        String description = desireSnapshot.child("description").getValue(String.class);
 
-                                Glide.with(ProfileActivity.this)
-                                        .load(post.imageUrl)
-                                        .into(desireImageView);
+                        View desireItemView = LayoutInflater.from(ProfileActivity.this).inflate(R.layout.desire_item, desiresContainer, false);
 
-                                desireRatingTextView.setText("★ " + post.rating);
-                                desireCommentsTextView.setText(String.valueOf(post.commentsCount));
-                                desireLocationTextView.setText(post.location);
-                                desireDateTextView.setText(post.date);
-                                desireDescriptionTextView.setText(post.description);
+                        ImageView desireImage = desireItemView.findViewById(R.id.myDesiresImage);
+                        TextView desireRating = desireItemView.findViewById(R.id.desireRating);
+                        TextView desireComments = desireItemView.findViewById(R.id.desireComments);
+                        TextView desireLocation = desireItemView.findViewById(R.id.desireLocation);
+                        TextView desireDate = desireItemView.findViewById(R.id.desireDate);
+                        TextView desireDescription = desireItemView.findViewById(R.id.desireDescription);
 
-                                myDesiresLayout.addView(desireItemView);
-                            }
-                        }
+                        Glide.with(ProfileActivity.this).load(imageUrl).into(desireImage);
+                        desireRating.setText("★ " + (rating != null ? rating : 0.0));
+                        desireComments.setText(String.valueOf(comments != null ? comments : 0));
+                        desireLocation.setText(location != null ? location : "");
+                        desireDate.setText(date != null ? date : "");
+                        desireDescription.setText(description != null ? description : "");
+
+                        desiresContainer.addView(desireItemView);
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(ProfileActivity.this, "Failed to load desires.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                } else {
+                    // Handle case when there are no desires
+                    TextView noDesiresText = new TextView(ProfileActivity.this);
+                    noDesiresText.setText("No desires to display.");
+                    desiresContainer.addView(noDesiresText);
+                }
             }
-        }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle possible errors
+            }
+        });
     }
 }
