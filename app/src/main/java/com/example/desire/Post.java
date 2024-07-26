@@ -1,6 +1,7 @@
 package com.example.desire;
 
 public class Post {
+    public String userId;
     public String postId;
     public String imageUrl;
     public double rating;
@@ -13,7 +14,8 @@ public class Post {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description) {
+    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description) {
+        this.userId = userId;
         this.postId = postId;
         this.imageUrl = imageUrl;
         this.rating = rating;

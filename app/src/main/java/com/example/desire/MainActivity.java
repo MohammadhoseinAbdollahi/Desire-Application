@@ -25,34 +25,41 @@ public class MainActivity extends AppCompatActivity {
         ImageView splashImage = findViewById(R.id.splash_image);
         Glide.with(this).load(R.drawable.startlogo).into(splashImage);
 
+        // Delay and check login status
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                // Check if user is logged in and userId is not null
-                FirebaseAuth auth = FirebaseAuth.getInstance();
-                if (auth.getCurrentUser() != null) {
-                    String userId = auth.getCurrentUser().getUid();
-                    if (userId != null) {
-                        // Redirect to ProfileActivity
-                        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                        intent.putExtra("userId", userId);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        // User ID is null, handle the error
-                        Toast.makeText(MainActivity.this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
-                        redirectToLogin();
-                    }
-                } else {
-                    // User is not logged in
-                    redirectToLogin();
-                }
+                checkLoginStatus();
             }
         }, SPLASH_DISPLAY_LENGTH);
     }
 
+    private void checkLoginStatus() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            String userId = auth.getCurrentUser().getUid();
+            if (userId != null) {
+                // User is logged in and userId is valid
+                redirectToProfile(userId);
+            } else {
+                // User ID is null, handle the error
+                Toast.makeText(MainActivity.this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
+                redirectToLogin();
+            }
+        } else {
+            // User is not logged in
+            redirectToLogin();
+        }
+    }
+
+    private void redirectToProfile(String userId) {
+        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+        intent.putExtra("userId", userId);
+        startActivity(intent);
+        finish();
+    }
+
     private void redirectToLogin() {
-        // Redirect to LoginActivity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
