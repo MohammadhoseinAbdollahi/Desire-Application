@@ -113,42 +113,44 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void loadUserDesires(List<String> postIds) {
         DatabaseReference postsRef = mDatabase.child("posts");
-        for (String postId : postIds) {
-            postsRef.child(postId).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        Post post = dataSnapshot.getValue(Post.class);
-                        if (post != null) {
-                            // Inflate and populate desire item
-                            View desireItemView = getLayoutInflater().inflate(R.layout.desire_item, myDesiresLayout, false);
-                            ImageView desireImageView = desireItemView.findViewById(R.id.myDesiresImage);
-                            TextView desireRatingTextView = desireItemView.findViewById(R.id.desireRating);
-                            TextView desireCommentsTextView = desireItemView.findViewById(R.id.desireComments);
-                            TextView desireLocationTextView = desireItemView.findViewById(R.id.desireLocation);
-                            TextView desireDateTextView = desireItemView.findViewById(R.id.desireDate);
-                            TextView desireDescriptionTextView = desireItemView.findViewById(R.id.desireDescription);
+        if (postIds != null) {
+            for (String postId : postIds) {
+                postsRef.child(postId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            Post post = dataSnapshot.getValue(Post.class);
+                            if (post != null) {
+                                // Inflate and populate desire item
+                                View desireItemView = getLayoutInflater().inflate(R.layout.desire_item, myDesiresLayout, false);
+                                ImageView desireImageView = desireItemView.findViewById(R.id.myDesiresImage);
+                                TextView desireRatingTextView = desireItemView.findViewById(R.id.desireRating);
+                                TextView desireCommentsTextView = desireItemView.findViewById(R.id.desireComments);
+                                TextView desireLocationTextView = desireItemView.findViewById(R.id.desireLocation);
+                                TextView desireDateTextView = desireItemView.findViewById(R.id.desireDate);
+                                TextView desireDescriptionTextView = desireItemView.findViewById(R.id.desireDescription);
 
-                            Glide.with(ProfileActivity.this)
-                                    .load(post.imageUrl)
-                                    .into(desireImageView);
+                                Glide.with(ProfileActivity.this)
+                                        .load(post.imageUrl)
+                                        .into(desireImageView);
 
-                            desireRatingTextView.setText("★ " + post.rating);
-                            desireCommentsTextView.setText(String.valueOf(post.commentsCount));
-                            desireLocationTextView.setText(post.location);
-                            desireDateTextView.setText(post.date);
-                            desireDescriptionTextView.setText(post.description);
+                                desireRatingTextView.setText("★ " + post.rating);
+                                desireCommentsTextView.setText(String.valueOf(post.commentsCount));
+                                desireLocationTextView.setText(post.location);
+                                desireDateTextView.setText(post.date);
+                                desireDescriptionTextView.setText(post.description);
 
-                            myDesiresLayout.addView(desireItemView);
+                                myDesiresLayout.addView(desireItemView);
+                            }
                         }
                     }
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(ProfileActivity.this, "Failed to load desires.", Toast.LENGTH_SHORT).show();
-                }
-            });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(ProfileActivity.this, "Failed to load desires.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         }
     }
 }
