@@ -1,216 +1,154 @@
 package com.example.desire;
 
-import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.io.IOException;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int REQUEST_IMAGE_CAPTURE = 2;
-
-    private DatabaseReference mDatabase;
-    private StorageReference mStorage;
     private ImageView profileImageView;
-    private CheckBox profileNameCheckBox;
+    private TextView profileNameTextView;
+    private LinearLayout profileRatingLayout;
+    private TextView gainedStarsTextView;
+    private TextView givenStarsTextView;
+    private TextView profileDescriptionTextView;
+    private LinearLayout myDesiresLayout;
+
+    private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
     private String userId;
-    private Uri imageUri;
-    private Button logoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        profileImageView = findViewById(R.id.ProfileImage);
-        profileNameCheckBox = findViewById(R.id.ProfileNameCheckBox);
-        logoutButton = findViewById(R.id.logout);
+        // Initialize Firebase Auth and Database
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Get the user ID from the intent
-        userId = getIntent().getStringExtra("userId");
-
-        if (userId == null) {
-            Toast.makeText(this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
-            redirectToLogin();
+        // Get current user
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            userId = currentUser.getUid();
+        } else {
+            // If no user is logged in, redirect to LoginActivity
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
             return;
         }
 
-        // Initialize Firebase Database and Storage
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
-        mStorage = FirebaseStorage.getInstance().getReference().child("profile_pictures");
+        // Initialize views
+        profileImageView = findViewById(R.id.profileImage);
+        profileNameTextView = findViewById(R.id.profileName);
+        profileRatingLayout = findViewById(R.id.profileRating);
+        gainedStarsTextView = findViewById(R.id.gainedStars);
+        givenStarsTextView = findViewById(R.id.givenStars);
+        profileDescriptionTextView = findViewById(R.id.profileDescription);
+        myDesiresLayout = findViewById(R.id.myDesiresScrollView).findViewById(R.id.desireItem);
 
-        // Retrieve user data from the database
-        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Load user data
+        loadUserData();
+    }
+
+    private void loadUserData() {
+        DatabaseReference userRef = mDatabase.child("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // Get user data
-                    String username = dataSnapshot.child("username").getValue(String.class);
-                    String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
+                    User user = dataSnapshot.getValue(User.class);
+                    if (user != null) {
+                        // Set user data to views
+                        profileNameTextView.setText(user.name);
+                        profileDescriptionTextView.setText(user.bio);
+                        gainedStarsTextView.setText("Gained\n" + user.RateGain);
+                        givenStarsTextView.setText("Given\n" + user.RateGive);
 
-                    // Set user data to views
-                    profileNameCheckBox.setText(username);
-                    if (profileImageUrl != null) {
-                        Glide.with(ProfileActivity.this)
-                                .load(profileImageUrl)
-                                .into(profileImageView);
+                        // Set rating stars
+                        int fullStars = (int) user.rating;
+                        for (int i = 0; i < fullStars; i++) {
+                            ((ImageView) profileRatingLayout.getChildAt(i)).setImageResource(R.drawable.star_fill);
+                        }
+                        if (user.rating - fullStars >= 0.5) {
+                            ((ImageView) profileRatingLayout.getChildAt(fullStars)).setImageResource(R.drawable.star_half);
+                        }
+
+                        // Load profile image
+                        if (!user.profileImageUrl.isEmpty()) {
+                            Glide.with(ProfileActivity.this)
+                                    .load(user.profileImageUrl)
+                                    .into(profileImageView);
+                        }
+
+                        // Load user's desires (posts)
+                        loadUserDesires(user.posts);
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle possible errors
-                Log.e("ProfileActivity", "Database error: " + databaseError.getMessage());
                 Toast.makeText(ProfileActivity.this, "Failed to load user data.", Toast.LENGTH_SHORT).show();
             }
         });
-
-        profileImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showImageOptions();
-            }
-        });
-
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                performLogout();
-            }
-        });
     }
 
-    private void performLogout() {
-        FirebaseAuth.getInstance().signOut();
-        redirectToLogin();
-    }
+    private void loadUserDesires(List<String> postIds) {
+        DatabaseReference postsRef = mDatabase.child("posts");
+        for (String postId : postIds) {
+            postsRef.child(postId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        Post post = dataSnapshot.getValue(Post.class);
+                        if (post != null) {
+                            // Inflate and populate desire item
+                            View desireItemView = getLayoutInflater().inflate(R.layout.desire_item, myDesiresLayout, false);
+                            ImageView desireImageView = desireItemView.findViewById(R.id.myDesiresImage);
+                            TextView desireRatingTextView = desireItemView.findViewById(R.id.desireRating);
+                            TextView desireCommentsTextView = desireItemView.findViewById(R.id.desireComments);
+                            TextView desireLocationTextView = desireItemView.findViewById(R.id.desireLocation);
+                            TextView desireDateTextView = desireItemView.findViewById(R.id.desireDate);
+                            TextView desireDescriptionTextView = desireItemView.findViewById(R.id.desireDescription);
 
-    private void showImageOptions() {
-        String[] options = {"Choose from Gallery", "Take Photo"};
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Select Image");
-        builder.setItems(options, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (which == 0) {
-                    openFileChooser();
-                } else if (which == 1) {
-                    if (ContextCompat.checkSelfPermission(ProfileActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(ProfileActivity.this, new String[]{Manifest.permission.CAMERA}, REQUEST_IMAGE_CAPTURE);
-                    } else {
-                        openCamera();
+                            Glide.with(ProfileActivity.this)
+                                    .load(post.imageUrl)
+                                    .into(desireImageView);
+
+                            desireRatingTextView.setText("★ " + post.rating);
+                            desireCommentsTextView.setText(String.valueOf(post.commentsCount));
+                            desireLocationTextView.setText(post.location);
+                            desireDateTextView.setText(post.date);
+                            desireDescriptionTextView.setText(post.description);
+
+                            myDesiresLayout.addView(desireItemView);
+                        }
                     }
                 }
-            }
-        });
-        builder.show();
-    }
 
-    private void openFileChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    private void openCamera() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            imageUri = data.getData();
-            uploadImage();
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            imageUri = getImageUri(imageBitmap);
-            uploadImage();
-        }
-    }
-
-    private Uri getImageUri(Bitmap bitmap) {
-        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Profile Picture", null);
-        return Uri.parse(path);
-    }
-
-    private void uploadImage() {
-        if (imageUri != null) {
-            StorageReference fileReference = mStorage.child(userId + ".jpg");
-            fileReference.putFile(imageUri)
-                    .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                fileReference.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        if (task.isSuccessful()) {
-                                            Uri downloadUri = task.getResult();
-                                            mDatabase.child("profileImageUrl").setValue(downloadUri.toString());
-                                            Glide.with(ProfileActivity.this).load(downloadUri).into(profileImageView);
-                                        }
-                                    }
-                                });
-                            } else {
-                                Toast.makeText(ProfileActivity.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-        }
-    }
-
-    private void redirectToLogin() {
-        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_IMAGE_CAPTURE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
-            } else {
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
-            }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(ProfileActivity.this, "Failed to load desires.", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 }

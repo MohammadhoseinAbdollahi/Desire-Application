@@ -21,8 +21,12 @@ public class User {
     public int numRatings;
     public String bio;
     public String profileImageUrl;
+    public int RateGain;
+    public int RateGive;
     public List<String> followers;
     public List<String> following;
+    public List<String> posts;
+
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -38,8 +42,11 @@ public class User {
         this.numRatings = 1;
         this.bio = "";
         this.profileImageUrl = "";
+        this.RateGain = 0;
+        this.RateGive = 0;
         this.followers = new ArrayList<>();
         this.following = new ArrayList<>();
+        this.posts = new ArrayList<>();
     }
 
     public interface SaveToFirebaseCallback {
@@ -61,8 +68,11 @@ public class User {
         userValues.put("numRatings", numRatings);
         userValues.put("bio", bio);
         userValues.put("profileImageUrl", profileImageUrl);
+        userValues.put("RateGain", RateGain);
+        userValues.put("RateGive", RateGive);
         userValues.put("followers", followers);
         userValues.put("following", following);
+        userValues.put("desires", posts);
 
         databaseReference.setValue(userValues).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -74,5 +84,7 @@ public class User {
                 }
             }
         });
-    }
+
+        }
+
 }

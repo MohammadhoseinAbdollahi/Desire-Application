@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_marginTop="8dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp">
+
+    <ImageView
+        android:id="@+id/myDesiresImage"
+        android:layout_width="252dp"
+        android:layout_height="274dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="centerCrop"
+        tools:srcCompat="@drawable/blacklogo" />
+
+    <LinearLayout
+        android:layout_width="119dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/desireRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="★ 3.7"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/desireComments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="22"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/desireLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Milan, Italy"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/desireDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="23 May, 2024"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/desireDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nice Sunny Day with lake and ducks."
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+    </LinearLayout>
+</LinearLayout>
