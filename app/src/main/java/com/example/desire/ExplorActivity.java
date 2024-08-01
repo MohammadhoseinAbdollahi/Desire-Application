@@ -21,7 +21,8 @@ public class ExplorActivity extends AppCompatActivity {
         setContentView(R.layout.activity_explor);
 
         desireContainer = findViewById(R.id.desireContainer);
-
+        View bottomNavView = findViewById(R.id.bottom_navigation);
+        BottomNavigationBar bottomNavigationBar = new BottomNavigationBar(this, bottomNavView);
         // Load and add desire items
         loadDesireItems();
     }

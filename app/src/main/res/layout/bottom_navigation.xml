@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottom_navigation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@android:color/white"
+    android:padding="16dp"
+    android:gravity="center"
+    android:weightSum="3"
+    android:elevation="8dp">
+
+    <ImageView
+        android:id="@+id/nav_profile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/user"
+        android:scaleType="centerInside"
+        android:padding="16dp"
+        android:layout_gravity="center" />
+
+    <ImageView
+        android:id="@+id/nav_home"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/home"
+        android:scaleType="centerInside"
+        android:padding="16dp"
+        android:layout_gravity="center" />
+
+    <ImageView
+        android:id="@+id/nav_compass"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/compass"
+        android:scaleType="centerInside"
+        android:padding="16dp"
+        android:layout_gravity="center" />
+
+</LinearLayout>
