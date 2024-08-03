@@ -1,15 +1,38 @@
 package com.example.desire;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class AddDesireActivity extends AppCompatActivity {
+
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private static final int CAMERA_REQUEST_CODE = 2;
 
     private EditText editLocation;
     private EditText editCaption;
@@ -20,11 +43,17 @@ public class AddDesireActivity extends AppCompatActivity {
     private Button buttonWeek;
     private Button buttonNoExpiration;
     private Button buttonPost;
+    private ImageView imageAdd;
+    private Uri imageUri;
+    private StorageReference mStorageRef;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_desire);
+
+        mStorageRef = FirebaseStorage.getInstance().getReference("posts");
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -43,6 +72,8 @@ public class AddDesireActivity extends AppCompatActivity {
         buttonWeek = findViewById(R.id.button_week);
         buttonNoExpiration = findViewById(R.id.button_no_expiration);
         buttonPost = findViewById(R.id.button_post);
+        imageAdd = findViewById(R.id.image_add);
+        userId = getIntent().getStringExtra("userId");
 
         // Set visibility button listeners
         View.OnClickListener visibilityClickListener = new View.OnClickListener() {
@@ -62,6 +93,16 @@ public class AddDesireActivity extends AppCompatActivity {
         buttonWeek.setOnClickListener(visibilityClickListener);
         buttonNoExpiration.setOnClickListener(visibilityClickListener);
 
+        // Set image add listener
+        imageAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Open gallery or camera
+                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            }
+        });
+
         // Set post button listener
         buttonPost.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,18 +110,72 @@ public class AddDesireActivity extends AppCompatActivity {
                 String location = editLocation.getText().toString();
                 String caption = editCaption.getText().toString();
 
-                // Handle the post action here
-                Toast.makeText(AddDesireActivity.this, "Desire Posted!", Toast.LENGTH_SHORT).show();
+                if (imageUri != null) {
+                    uploadImageToFirebase(location, caption);
+                } else {
+                    Toast.makeText(AddDesireActivity.this, "Please select an image", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
 
-        // Set image add listener
-        ImageView imageAdd = findViewById(R.id.image_add);
-        imageAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Handle image add action here
-                Toast.makeText(AddDesireActivity.this, "Add Image Clicked!", Toast.LENGTH_SHORT).show();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            imageAdd.setImageURI(imageUri);
+        } else if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            imageUri = getImageUri(photo);
+            imageAdd.setImageBitmap(photo);
+        }
+    }
+
+    private Uri getImageUri(Bitmap bitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
+        return Uri.parse(path);
+    }
+
+    private void uploadImageToFirebase(String location, String caption) {
+        if (imageUri != null) {
+            StorageReference fileReference = mStorageRef.child(System.currentTimeMillis() + ".jpg");
+            fileReference.putFile(imageUri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                String imageUrl = uri.toString();
+                                savePostToDatabase(location, caption, imageUrl);
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(AddDesireActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
+                    }
+                });
+        }
+    }
+
+    private void savePostToDatabase(String location, String caption, String imageUrl) {
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("posts");
+        String postId = mDatabase.push().getKey();
+        String currentDate = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(new Date());
+        String postDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true);
+
+        mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(AddDesireActivity.this, "Post added successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(AddDesireActivity.this, "Failed to add post.", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -14,12 +15,13 @@ public class HomeActivity extends AppCompatActivity {
 
     private LinearLayout desireContainer;
     private String userId;
+    private Button addDesireButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
+        addDesireButton = findViewById(R.id.addDesireButton);
         desireContainer = findViewById(R.id.desireContainer);
         // Initialize BottomNavigationBar
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -27,6 +29,13 @@ public class HomeActivity extends AppCompatActivity {
 
         // Get the user ID from the intent
         userId = getIntent().getStringExtra("userId");
+        addDesireButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openAddDesireActivity(view);
+            }
+
+        });
 
         // Load and add desire items
         loadDesireItems();
@@ -63,4 +72,14 @@ public class HomeActivity extends AppCompatActivity {
             desireContainer.addView(desireItemView);
         }
     }
+    // open add desire activity when add desire button is clicked with userid
+    public void openAddDesireActivity(View view) {
+        Intent intent = new Intent(this, AddDesireActivity.class);
+        intent.putExtra("userId", userId);
+        startActivity(intent);
+    }
+
 }
+
+
+
