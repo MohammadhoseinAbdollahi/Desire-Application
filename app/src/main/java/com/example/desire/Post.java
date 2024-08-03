@@ -9,12 +9,12 @@ public class Post {
     public String location;
     public String date;
     public String description;
-
+    public boolean israted = false;
     public Post() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description) {
+    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description, boolean israted) {
         this.userId = userId;
         this.postId = postId;
         this.imageUrl = imageUrl;
@@ -23,5 +23,6 @@ public class Post {
         this.location = location;
         this.date = date;
         this.description = description;
+        this.israted = israted;
     }
 }

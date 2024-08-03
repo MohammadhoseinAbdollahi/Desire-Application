@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,6 +46,7 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView gainedStarsTextView, givenStarsTextView, bioTextView;
     private String userId;
     private Uri imageUri;
+    private View desireContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,25 +57,36 @@ public class ProfileActivity extends AppCompatActivity {
         gainedStarsTextView = findViewById(R.id.gainedStars);
         givenStarsTextView = findViewById(R.id.givenStars);
         bioTextView = findViewById(R.id.profileDescription);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
+        desireContainer = findViewById(R.id.desireContainer);
+
+        // Initialize BottomNavigationBar
+        View bottomNavigationView = findViewById(R.id.bottom_navigation);
+        new BottomNavigationBar(this, bottomNavigationView, userId);
 
         // Get the user ID from the intent
         userId = getIntent().getStringExtra("userId");
+        if (userId == null) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                userId = currentUser.getUid();
+            } else {
+                Toast.makeText(this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        }
 
-        // Initialize Firebase Database and Storage
+        // Initialize Firebase Database
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
-        mStorage = FirebaseStorage.getInstance().getReference().child("profile_pictures");
 
         // Retrieve user data from the database
         mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // Get user data
                     String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
                     String bio = dataSnapshot.child("bio").getValue(String.class);
-
-                    // Update gainedStars and givenStars
                     int rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
                     int rateGive = dataSnapshot.child("RateGive").getValue(Integer.class);
 
@@ -81,11 +94,8 @@ public class ProfileActivity extends AppCompatActivity {
                     givenStarsTextView.setText("Given\n" + rateGive);
                     bioTextView.setText(bio);
 
-                    // Set user data to views
                     if (profileImageUrl != null) {
-                        Glide.with(ProfileActivity.this)
-                                .load(profileImageUrl)
-                                .into(profileImageView);
+                        Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
                     }
                 }
             }

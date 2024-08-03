@@ -1,5 +1,6 @@
 package com.example.desire;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import com.bumptech.glide.Glide;
 public class HomeActivity extends AppCompatActivity {
 
     private LinearLayout desireContainer;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +21,12 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         desireContainer = findViewById(R.id.desireContainer);
+        // Initialize BottomNavigationBar
+        View bottomNavigationView = findViewById(R.id.bottom_navigation);
+        new BottomNavigationBar(this, bottomNavigationView, userId);
+
+        // Get the user ID from the intent
+        userId = getIntent().getStringExtra("userId");
 
         // Load and add desire items
         loadDesireItems();

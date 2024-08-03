@@ -58,6 +58,16 @@
             android:name=".SettingsActivity"
             android:exported="false" />
 
+        <!-- Home Activity -->
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false" />
+
+        <!-- Explore Activity -->
+        <activity
+            android:name=".ExploreActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

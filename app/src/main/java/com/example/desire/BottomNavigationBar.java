@@ -9,9 +9,11 @@ public class BottomNavigationBar {
 
     private Context context;
     private ImageView profileIcon, homeIcon, compassIcon;
+    private String userId;
 
-    public BottomNavigationBar(Context context, View view) {
+    public BottomNavigationBar(Context context, View view, String userId) {
         this.context = context;
+        this.userId = userId;
         profileIcon = view.findViewById(R.id.nav_profile);
         homeIcon = view.findViewById(R.id.nav_home);
         compassIcon = view.findViewById(R.id.nav_compass);
@@ -24,6 +26,7 @@ public class BottomNavigationBar {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, ProfileActivity.class);
+                intent.putExtra("userId", userId);
                 context.startActivity(intent);
             }
         });
@@ -32,6 +35,7 @@ public class BottomNavigationBar {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, HomeActivity.class);
+                intent.putExtra("userId", userId);
                 context.startActivity(intent);
             }
         });
@@ -40,6 +44,7 @@ public class BottomNavigationBar {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, ExploreActivity.class);
+                intent.putExtra("userId", userId);
                 context.startActivity(intent);
             }
         });
