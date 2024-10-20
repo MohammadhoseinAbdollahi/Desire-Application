@@ -1,23 +1,24 @@
 package com.example.desire;
 
 public class Post {
-    public String userId;
-    public String postId;
-    public String imageUrl;
-    public double rating;
-    public int commentsCount;
-    public String location;
-    public String date;
-    public String description;
-    public boolean israted = false;
-    public String postdate;
-    public boolean visibility=true;
+    private String userId;
+    private String postId;
+    private String imageUrl;
+    private double rating;
+    private int commentsCount;
+    private String location;
+    private String date;
+    private String description;
+    private boolean isRated;
+    private String postDate;
+    private boolean visibility;
 
+    // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     public Post() {
-        // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description, boolean israted, String postdate,boolean visibility) {
+    // Constructor with parameters
+    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description, boolean isRated, String postDate, boolean visibility) {
         this.userId = userId;
         this.postId = postId;
         this.imageUrl = imageUrl;
@@ -26,8 +27,97 @@ public class Post {
         this.location = location;
         this.date = date;
         this.description = description;
-        this.israted = israted;
-        this.postdate = postdate;
+        this.isRated = isRated;
+        this.postDate = postDate;
+        this.visibility = visibility;
+    }
+
+    // Getters and Setters
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getPostId() {
+        return postId;
+    }
+
+    public void setPostId(String postId) {
+        this.postId = postId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+
+    public int getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(int commentsCount) {
+        this.commentsCount = commentsCount;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isRated() {
+        return isRated;
+    }
+
+    public void setRated(boolean rated) {
+        isRated = rated;
+    }
+
+    public String getPostDate() {
+        return postDate;
+    }
+
+    public void setPostDate(String postDate) {
+        this.postDate = postDate;
+    }
+
+    public boolean isVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(boolean visibility) {
         this.visibility = visibility;
     }
 }

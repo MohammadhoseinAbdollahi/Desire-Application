@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,11 +8,14 @@
     tools:context=".ProfileActivity">
 
     <!-- Profile Header -->
+
+    <!-- Profile Image with Rounded Corners -->
+
     <TextView
         android:id="@+id/header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:text="Profile"
         android:textAlignment="textStart"
         android:textColor="@android:color/black"
@@ -22,18 +26,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Profile Image -->
-    <ImageView
+    <com.example.desire.RoundedImageView
         android:id="@+id/profileImage"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
         android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
         android:scaleType="centerCrop"
-        android:background="@drawable/image_rounded_corners"
-        android:clipToOutline="true"
-        android:src="@drawable/anita"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/header" />
 
@@ -44,8 +43,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="70dp"
-        android:text="Mohammad Abdollahi"
+        android:layout_marginEnd="16dp"
+        android:text="User Name"
         android:textColor="#000000"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -53,95 +52,50 @@
         app:layout_constraintStart_toEndOf="@+id/profileImage"
         app:layout_constraintTop_toBottomOf="@+id/header" />
 
-    <!-- Fame Tag -->
-    <TextView
-        android:id="@+id/fameTag"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/fame_tag_background"
-        android:padding="4dp"
-        android:text="FAME"
-        android:textColor="@android:color/white"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/profileName"
-        app:layout_constraintTop_toBottomOf="@+id/header"
-        app:layout_constraintBottom_toBottomOf="@+id/profileName" />
-
     <!-- Rating Stars -->
     <LinearLayout
-        android:id="@+id/profileRating"
+        android:id="@+id/profileRatingLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:orientation="horizontal"
         app:layout_constraintStart_toEndOf="@+id/profileImage"
-        app:layout_constraintTop_toBottomOf="@+id/profileName"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="16dp">
+        app:layout_constraintTop_toBottomOf="@+id/profileName">
 
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/star_fill" />
+
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/star_fill" />
+
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/star_fill" />
+
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/star_fill" />
+
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/star_empty" />
 
         <TextView
+            android:id="@+id/profileRatingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="  4.3"
-            android:textSize="16sp"
-            android:textColor="@android:color/black" />
-    </LinearLayout>
-
-    <!-- Gained and Given Stars -->
-    <LinearLayout
-        android:id="@+id/starsLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toEndOf="@+id/profileImage"
-        app:layout_constraintTop_toBottomOf="@+id/profileRating"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="16dp">
-
-        <TextView
-            android:id="@+id/gainedStars"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gained\n1200"
-            android:textAlignment="center"
-            android:padding="4dp"
+            android:text="4.3"
             android:textColor="@android:color/black"
             android:textSize="16sp"
-            android:layout_marginEnd="16dp" />
-
-        <TextView
-            android:id="@+id/givenStars"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Given\n160"
-            android:textAlignment="center"
-            android:padding="4dp"
-            android:textColor="@android:color/black"
-            android:textSize="16sp" />
+            android:layout_marginStart="8dp" />
     </LinearLayout>
 
     <!-- Profile Description -->
@@ -150,16 +104,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="76dp"
         android:layout_marginEnd="16dp"
-        android:text="Hi, I'm Mohammad. I believe in the power of encouragement. With 1200 stars received and 160 stars given, I’m committed to celebrating and uplifting our community. Together, we shine brighter!"
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
         android:background="@drawable/description_background"
         android:padding="8dp"
+        android:text="User bio goes here"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/starsLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/profileRatingLayout" />
 
     <!-- MyDesires Section Header -->
     <TextView
@@ -175,30 +129,18 @@
         app:layout_constraintTop_toBottomOf="@+id/profileDescription"
         android:layout_marginStart="16dp" />
 
-    <!-- MyDesires Section Horizontal ScrollView -->
-    <HorizontalScrollView
-        android:id="@+id/myDesiresScrollView"
+    <!-- RecyclerView for MyDesires -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/desireRecyclerView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/myDesiresHeader"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
-        android:scrollbars="horizontal">
+        android:layout_marginBottom="16dp" />
 
-        <LinearLayout
-            android:id="@+id/desireContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <!-- Dynamic desires will be added here -->
-
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- Swipe For Next -->
+    <!-- Swipe For Next Text -->
     <TextView
         android:id="@+id/swipeForNext"
         android:layout_width="wrap_content"
@@ -211,21 +153,12 @@
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/myDesiresScrollView" />
+        app:layout_constraintTop_toBottomOf="@+id/desireRecyclerView" />
 
-    <!-- Settings Icon -->
-    <ImageView
-        android:id="@+id/settingicon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.974"
-        app:layout_constraintStart_toEndOf="@+id/header"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/iconsetting" />
+    <!-- Bottom Navigation Bar (included layout) -->
+    <!-- Bottom Navigation -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -237,6 +170,5 @@
             layout="@layout/bottom_navigation"
             />
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

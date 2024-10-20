@@ -1,25 +1,18 @@
 package com.example.desire;
 
-import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -27,26 +20,18 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int REQUEST_IMAGE_CAPTURE = 2;
-    private static final int CAMERA_PERMISSION_CODE = 100;
-
     private DatabaseReference mDatabase;
-    private StorageReference mStorage;
     private ImageView profileImageView;
-    private TextView gainedStarsTextView, givenStarsTextView, bioTextView;
+    private TextView gainedStarsTextView, bioTextView, profileNameTextView;
+    private RecyclerView desireRecyclerView;
+    private DesireAdapter desireAdapter;
+    private ArrayList<Post> postList = new ArrayList<>();
     private String userId;
-    private Uri imageUri;
-    private View desireContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,45 +39,54 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         profileImageView = findViewById(R.id.profileImage);
-        gainedStarsTextView = findViewById(R.id.gainedStars);
-        givenStarsTextView = findViewById(R.id.givenStars);
+        gainedStarsTextView = findViewById(R.id.profileRatingText);
         bioTextView = findViewById(R.id.profileDescription);
-        desireContainer = findViewById(R.id.desireContainer);
+        profileNameTextView = findViewById(R.id.profileName);
+        desireRecyclerView = findViewById(R.id.desireRecyclerView);
 
         // Initialize BottomNavigationBar
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
         new BottomNavigationBar(this, bottomNavigationView, userId);
 
-        // Get the user ID from the intent
-        userId = getIntent().getStringExtra("userId");
-        if (userId == null) {
-            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            if (currentUser != null) {
-                userId = currentUser.getUid();
-            } else {
-                Toast.makeText(this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        // Get the user ID from Firebase Auth
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            userId = currentUser.getUid();
+        } else {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
+            finish();
         }
 
         // Initialize Firebase Database
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Retrieve user data from the database
-        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Fetch user profile details
+        fetchUserProfile();
+
+        // Setup RecyclerView for displaying user posts
+        desireRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        desireAdapter = new DesireAdapter(postList);
+        desireRecyclerView.setAdapter(desireAdapter);
+
+        // Fetch posts that belong to the signed-in user
+        fetchUserPosts();
+    }
+
+    private void fetchUserProfile() {
+        mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
                     String bio = dataSnapshot.child("bio").getValue(String.class);
+                    String name = dataSnapshot.child("name").getValue(String.class);
                     int rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
-                    int rateGive = dataSnapshot.child("RateGive").getValue(Integer.class);
 
-                    gainedStarsTextView.setText("Gained\n" + rateGain);
-                    givenStarsTextView.setText("Given\n" + rateGive);
+                    // Set user profile data
+                    gainedStarsTextView.setText(" " + rateGain);
                     bioTextView.setText(bio);
+                    profileNameTextView.setText(name);
 
                     if (profileImageUrl != null) {
                         Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
@@ -105,114 +99,24 @@ public class ProfileActivity extends AppCompatActivity {
                 // Handle possible errors
             }
         });
-
-        profileImageView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                showImageOptions();
-                return true;
-            }
-        });
-
-        findViewById(R.id.settingicon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
-                intent.putExtra("userId", userId);
-                startActivity(intent);
-            }
-        });
     }
 
-    private void showImageOptions() {
-        String[] options = {"Choose from Gallery", "Take Photo"};
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Select Image");
-        builder.setItems(options, new DialogInterface.OnClickListener() {
+    private void fetchUserPosts() {
+        mDatabase.child("posts").orderByChild("userId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (which == 0) {
-                    openFileChooser();
-                } else if (which == 1) {
-                    if (ContextCompat.checkSelfPermission(ProfileActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(ProfileActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-                    } else {
-                        openCamera();
-                    }
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                postList.clear();
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Post post = postSnapshot.getValue(Post.class);
+                    postList.add(post);
                 }
+                desireAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(ProfileActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
             }
         });
-        builder.show();
-    }
-
-    private void openFileChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    private void openCamera() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
-            } else {
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            imageUri = data.getData();
-            uploadImage();
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            imageUri = getImageUri(imageBitmap);
-            uploadImage();
-        }
-    }
-
-    private Uri getImageUri(Bitmap bitmap) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Profile Picture", null);
-        return Uri.parse(path);
-    }
-
-    private void uploadImage() {
-        if (imageUri != null) {
-            StorageReference fileReference = mStorage.child(userId + ".jpg");
-            fileReference.putFile(imageUri)
-                    .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                fileReference.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        if (task.isSuccessful()) {
-                                            Uri downloadUri = task.getResult();
-                                            mDatabase.child("profileImageUrl").setValue(downloadUri.toString());
-                                            Glide.with(ProfileActivity.this).load(downloadUri).into(profileImageView);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    });
-        }
     }
 }

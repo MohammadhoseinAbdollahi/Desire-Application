@@ -17,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -55,6 +57,12 @@ public class AddDesireActivity extends AppCompatActivity {
 
         mStorageRef = FirebaseStorage.getInstance().getReference("posts");
 
+        // Get the user ID of the currently signed-in user
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            userId = currentUser.getUid();  // This will be used to identify the user in the post
+        }
+
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,7 +81,6 @@ public class AddDesireActivity extends AppCompatActivity {
         buttonNoExpiration = findViewById(R.id.button_no_expiration);
         buttonPost = findViewById(R.id.button_post);
         imageAdd = findViewById(R.id.image_add);
-        userId = getIntent().getStringExtra("userId");
 
         // Set visibility button listeners
         View.OnClickListener visibilityClickListener = new View.OnClickListener() {
@@ -143,24 +150,24 @@ public class AddDesireActivity extends AppCompatActivity {
         if (imageUri != null) {
             StorageReference fileReference = mStorageRef.child(System.currentTimeMillis() + ".jpg");
             fileReference.putFile(imageUri)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                String imageUrl = uri.toString();
-                                savePostToDatabase(location, caption, imageUrl);
-                            }
-                        });
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AddDesireActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    String imageUrl = uri.toString();
+                                    savePostToDatabase(location, caption, imageUrl);
+                                }
+                            });
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(AddDesireActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 
@@ -169,11 +176,18 @@ public class AddDesireActivity extends AppCompatActivity {
         String postId = mDatabase.push().getKey();
         String currentDate = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(new Date());
         String postDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        // Create a new post object with the current user's ID
         Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true);
 
         mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Toast.makeText(AddDesireActivity.this, "Post added successfully!", Toast.LENGTH_SHORT).show();
+                // Redirect to HomeActivity and finish this activity
+                Intent intent = new Intent(AddDesireActivity.this, HomeActivity.class);
+                intent.putExtra("userId", userId);
+                startActivity(intent);
+                finish();
             } else {
                 Toast.makeText(AddDesireActivity.this, "Failed to add post.", Toast.LENGTH_SHORT).show();
             }

@@ -39,6 +39,17 @@ public class HomeActivity extends AppCompatActivity {
 
         // Load and add desire items
         loadDesireItems();
+
+        addDesireButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Open AddDesireActivity with the user ID
+                Intent intent = new Intent(HomeActivity.this, AddDesireActivity.class);
+                intent.putExtra("userId", userId);
+                startActivity(intent);
+
+            }
+        });
     }
 
     private void loadDesireItems() {
@@ -72,6 +83,7 @@ public class HomeActivity extends AppCompatActivity {
             desireContainer.addView(desireItemView);
         }
     }
+
     // open add desire activity when add desire button is clicked with userid
     public void openAddDesireActivity(View view) {
         Intent intent = new Intent(this, AddDesireActivity.class);
