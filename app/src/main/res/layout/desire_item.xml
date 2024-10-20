@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp"
+    android:padding="12dp"
     android:id="@+id/desireItem"
-    android:layout_marginTop="8dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
     android:background="@drawable/card_background"
-    android:elevation="4dp">
+    android:elevation="6dp">
 
     <!-- Post Image with Rounded Corners -->
     <com.example.desire.RoundedImageView
         android:id="@+id/myDesiresImage"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:layout_marginEnd="16dp"
-        android:scaleType="centerCrop" />
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginEnd="20dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/image_rounded_corners" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -27,17 +28,18 @@
         android:orientation="vertical"
         android:gravity="center_vertical">
 
+        <!-- Rating Section -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
                 android:src="@drawable/star_fill" />
 
             <TextView
@@ -46,20 +48,21 @@
                 android:layout_height="wrap_content"
                 android:text="3.7"
                 android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
+        <!-- Comments Section -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
                 android:src="@drawable/ic_comment" />
 
             <TextView
@@ -68,20 +71,21 @@
                 android:layout_height="wrap_content"
                 android:text="22"
                 android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
+        <!-- Location Section -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
                 android:src="@drawable/ic_location" />
 
             <TextView
@@ -90,20 +94,21 @@
                 android:layout_height="wrap_content"
                 android:text="Milan, Italy"
                 android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
+        <!-- Date Section -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="8dp"
             android:gravity="center_vertical">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
                 android:src="@drawable/ic_time" />
 
             <TextView
@@ -112,16 +117,21 @@
                 android:layout_height="wrap_content"
                 android:text="23 May, 2024"
                 android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/desireDescription"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nice Sunny Day with lake and ducks."
-            android:textColor="@android:color/black"
-            android:textSize="16sp" />
+        <!-- Description Section -->
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/desireDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nice Sunny Day with lake and ducks."
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+</ScrollView>
 
     </LinearLayout>
 

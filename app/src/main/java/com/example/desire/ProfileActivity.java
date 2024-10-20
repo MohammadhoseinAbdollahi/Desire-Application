@@ -64,13 +64,26 @@ public class ProfileActivity extends AppCompatActivity {
         // Fetch user profile details
         fetchUserProfile();
 
-        // Setup RecyclerView for displaying user posts
-        desireRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Setup RecyclerView for displaying user posts in horizontal scroll
+        desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireAdapter = new DesireAdapter(postList);
         desireRecyclerView.setAdapter(desireAdapter);
 
+
         // Fetch posts that belong to the signed-in user
         fetchUserPosts();
+
+        // setting icon click listeners
+        ImageView settingIcon = findViewById(R.id.settingbutton);
+        settingIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
     }
 
     private void fetchUserProfile() {
