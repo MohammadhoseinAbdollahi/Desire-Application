@@ -38,6 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // Initialize UI components
         profileImageView = findViewById(R.id.profileImage);
         gainedStarsTextView = findViewById(R.id.profileRatingText);
         bioTextView = findViewById(R.id.profileDescription);
@@ -56,6 +57,7 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
             finish();
+            return; // Ensure the rest of the code doesn't execute if the user isn't logged in
         }
 
         // Initialize Firebase Database
@@ -69,40 +71,38 @@ public class ProfileActivity extends AppCompatActivity {
         desireAdapter = new DesireAdapter(postList);
         desireRecyclerView.setAdapter(desireAdapter);
 
-
         // Fetch posts that belong to the signed-in user
         fetchUserPosts();
 
-        // setting icon click listeners
+        // Set click listener for settings icon
         ImageView settingIcon = findViewById(R.id.settingbutton);
-        settingIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        settingIcon.setOnClickListener(v -> {
+            if (!isFinishing()) {
                 Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
                 startActivity(intent);
             }
         });
-
-
     }
 
     private void fetchUserProfile() {
         mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
+                if (dataSnapshot.exists() && !isFinishing()) {
                     String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
                     String bio = dataSnapshot.child("bio").getValue(String.class);
-                    String name = dataSnapshot.child("name").getValue(String.class);
-                    int rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
+                    String username = dataSnapshot.child("username").getValue(String.class);
+                    Integer rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
 
-                    // Set user profile data
-                    gainedStarsTextView.setText(" " + rateGain);
-                    bioTextView.setText(bio);
-                    profileNameTextView.setText(name);
+                    // Set user profile data if the activity is still active
+                    if (rateGain != null && !isDestroyed()) {
+                        gainedStarsTextView.setText(String.valueOf(rateGain));
+                        bioTextView.setText(bio);
+                        profileNameTextView.setText(username);
 
-                    if (profileImageUrl != null) {
-                        Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
+                        if (profileImageUrl != null) {
+                            Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
+                        }
                     }
                 }
             }
@@ -110,6 +110,9 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Handle possible errors
+                if (!isFinishing()) {
+                    Toast.makeText(ProfileActivity.this, "Failed to load profile", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -119,17 +122,29 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 postList.clear();
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    Post post = postSnapshot.getValue(Post.class);
-                    postList.add(post);
+                if (!isFinishing()) {
+                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                        Post post = postSnapshot.getValue(Post.class);
+                        if (post != null) {
+                            postList.add(post);
+                        }
+                    }
+                    desireAdapter.notifyDataSetChanged();
                 }
-                desireAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(ProfileActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
+                if (!isFinishing()) {
+                    Toast.makeText(ProfileActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Nullify any listeners or pending operations here to prevent memory leaks or illegal state changes
     }
 }

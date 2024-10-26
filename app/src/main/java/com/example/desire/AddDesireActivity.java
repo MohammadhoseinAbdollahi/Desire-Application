@@ -19,8 +19,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -49,6 +52,7 @@ public class AddDesireActivity extends AppCompatActivity {
     private Uri imageUri;
     private StorageReference mStorageRef;
     private String userId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,25 +176,43 @@ public class AddDesireActivity extends AppCompatActivity {
     }
 
     private void savePostToDatabase(String location, String caption, String imageUrl) {
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("posts");
-        String postId = mDatabase.push().getKey();
-        String currentDate = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(new Date());
-        String postDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("posts");
+    String postId = mDatabase.push().getKey();
+    String currentDate = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(new Date());
+    String postDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
-        // Create a new post object with the current user's ID
-        Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true);
+    // Fetch the current user's username
+    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+    userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            User user = dataSnapshot.getValue(User.class);
+            if (user != null) {
+                String username = user.getUsername();
 
-        mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(AddDesireActivity.this, "Post added successfully!", Toast.LENGTH_SHORT).show();
-                // Redirect to HomeActivity and finish this activity
-                Intent intent = new Intent(AddDesireActivity.this, HomeActivity.class);
-                intent.putExtra("userId", userId);
-                startActivity(intent);
-                finish();
-            } else {
-                Toast.makeText(AddDesireActivity.this, "Failed to add post.", Toast.LENGTH_SHORT).show();
+                // Create a new post object with the current user's ID and username
+                Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true, username);
+
+                mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(AddDesireActivity.this, "Post added successfully!", Toast.LENGTH_SHORT).show();
+                        // Redirect to HomeActivity and finish this activity
+                        Intent intent = new Intent(AddDesireActivity.this, HomeActivity.class);
+                        intent.putExtra("userId", userId);
+                        startActivity(intent);
+                        finish();
+                    } else {
+
+                        Toast.makeText(AddDesireActivity.this, "Failed to add post.", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
-        });
-    }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+            Toast.makeText(AddDesireActivity.this, "Failed to fetch username.", Toast.LENGTH_SHORT).show();
+        }
+    });
+}
 }

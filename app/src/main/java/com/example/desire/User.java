@@ -49,6 +49,10 @@ public class User {
         this.posts = new ArrayList<>();
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public interface SaveToFirebaseCallback {
         void onSuccess();
         void onFailure(Exception e);
