@@ -23,7 +23,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Display the GIF
         ImageView splashImage = findViewById(R.id.splash_image);
-        Glide.with(this).load(R.drawable.startlogo).into(splashImage);
+        if (splashImage != null) {
+            Glide.with(this).load(R.drawable.startlogo).into(splashImage);
+        } else {
+            Toast.makeText(this, "Splash image view is null", Toast.LENGTH_SHORT).show();
+        }
 
         // Delay and check login status
         new Handler().postDelayed(new Runnable() {

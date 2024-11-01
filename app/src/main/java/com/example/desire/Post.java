@@ -1,5 +1,14 @@
 package com.example.desire;
 
+import androidx.annotation.NonNull;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 public class Post {
     private String userId;
     private String postId;
@@ -10,15 +19,16 @@ public class Post {
     private String date;
     private String description;
     private boolean isRated;
-    private String postDate;
+    private String postdate;
     private boolean visibility;
+    private String username;
 
     // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     public Post() {
     }
 
     // Constructor with parameters
-    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description, boolean isRated, String postDate, boolean visibility) {
+    public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location, String date, String description, boolean isRated, String postDate, boolean visibility, String username) {
         this.userId = userId;
         this.postId = postId;
         this.imageUrl = imageUrl;
@@ -28,8 +38,9 @@ public class Post {
         this.date = date;
         this.description = description;
         this.isRated = isRated;
-        this.postDate = postDate;
+        this.postdate = postdate;
         this.visibility = visibility;
+        this.username = username;
     }
 
     // Getters and Setters
@@ -106,11 +117,11 @@ public class Post {
     }
 
     public String getPostDate() {
-        return postDate;
+        return postdate;
     }
 
     public void setPostDate(String postDate) {
-        this.postDate = postDate;
+        this.postdate = postDate;
     }
 
     public boolean isVisibility() {
@@ -120,4 +131,7 @@ public class Post {
     public void setVisibility(boolean visibility) {
         this.visibility = visibility;
     }
+
+    public String getUsername() {return username;}
+
 }
