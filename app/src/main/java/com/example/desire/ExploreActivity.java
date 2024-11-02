@@ -32,7 +32,9 @@ public class ExploreActivity extends AppCompatActivity {
     private Button sameDesireButton;
     private DesireAdapter desireAdapter;
     private List<Post> desireList;
+    private List<Post> allPosts;  // Store all posts to manage visibility based on rating
     private TextView usernameexplore;
+    private boolean isFirstPostRated = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,7 @@ public class ExploreActivity extends AppCompatActivity {
 
         desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireList = new ArrayList<>();
+        allPosts = new ArrayList<>();  // Initialize to hold all posts
         desireAdapter = new DesireAdapter(desireList);
         desireRecyclerView.setAdapter(desireAdapter);
 
@@ -58,13 +61,11 @@ public class ExploreActivity extends AppCompatActivity {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(ExploreActivity.this, LoginActivity.class));
             finish();
-            return; // Exit if user is not logged in
+            return;
         }
 
-        // Initialize Firebase Database
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Load desire items with userId different from the logged-in user
         loadDesireItems();
 
         sameDesireButton.setOnClickListener(v -> {
@@ -76,14 +77,20 @@ public class ExploreActivity extends AppCompatActivity {
         mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                desireList.clear();
+                allPosts.clear();
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Post post = postSnapshot.getValue(Post.class);
                     if (post != null && !post.getUserId().equals(userId)) {  // Only add posts with different userIds
-                        desireList.add(post);
+                        allPosts.add(post);
                     }
                 }
-                desireAdapter.notifyDataSetChanged();
+
+                // Load the first post only initially
+                if (!allPosts.isEmpty()) {
+                    desireList.clear();
+                    desireList.add(allPosts.get(0));  // Add only the first post to desireList
+                    desireAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -133,7 +140,6 @@ public class ExploreActivity extends AppCompatActivity {
                 desireDescription = itemView.findViewById(R.id.desireDescription);
                 username = itemView.findViewById(R.id.exploreusername);
 
-
                 stars = new ImageView[]{
                         itemView.findViewById(R.id.star1),
                         itemView.findViewById(R.id.star2),
@@ -160,7 +166,7 @@ public class ExploreActivity extends AppCompatActivity {
 
                 for (int i = 0; i < stars.length; i++) {
                     final int ratingIndex = i;
-                    if (stars[i] != null) {  // Add null check
+                    if (stars[i] != null) {
                         stars[i].setOnClickListener(v -> {
                             updateStarView(ratingIndex + 1);
                             updateRating(post, ratingIndex + 1);
@@ -171,7 +177,7 @@ public class ExploreActivity extends AppCompatActivity {
 
             private void updateStarView(double rating) {
                 for (int i = 0; i < stars.length; i++) {
-                    if (stars[i] != null) {  // Add null check
+                    if (stars[i] != null) {
                         stars[i].setImageResource(i < rating ? R.drawable.star_fill : R.drawable.star_empty);
                     }
                 }
@@ -183,6 +189,14 @@ public class ExploreActivity extends AppCompatActivity {
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 Toast.makeText(ExploreActivity.this, "Rated " + rating + " stars!", Toast.LENGTH_SHORT).show();
+                                isFirstPostRated = true;
+
+                                // Check if more posts are available to load
+                                if (isFirstPostRated && desireList.size() < allPosts.size()) {
+                                    desireList.add(allPosts.get(desireList.size()));  // Add the next post
+                                    desireAdapter.notifyDataSetChanged();
+                                    isFirstPostRated = false;  // Reset to allow sequential rating
+                                }
                             } else {
                                 Toast.makeText(ExploreActivity.this, "Failed to update rating", Toast.LENGTH_SHORT).show();
                             }
@@ -191,3 +205,4 @@ public class ExploreActivity extends AppCompatActivity {
         }
     }
 }
+

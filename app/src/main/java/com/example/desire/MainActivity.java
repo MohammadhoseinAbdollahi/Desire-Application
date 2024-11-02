@@ -16,11 +16,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // Initialize Firebase
         FirebaseApp.initializeApp(this);
+
         setContentView(R.layout.activity_main);
-
-
 
         // Display the GIF
         ImageView splashImage = findViewById(R.id.splash_image);
@@ -44,15 +44,12 @@ public class MainActivity extends AppCompatActivity {
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
             if (userId != null) {
-                // User is logged in and userId is valid
                 redirectToProfile(userId);
             } else {
-                // User ID is null, handle the error
                 Toast.makeText(MainActivity.this, "User ID is null. Please log in again.", Toast.LENGTH_SHORT).show();
                 redirectToLogin();
             }
         } else {
-            // User is not logged in
             redirectToLogin();
         }
     }

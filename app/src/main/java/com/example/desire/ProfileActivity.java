@@ -6,12 +6,10 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -20,7 +18,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 import java.util.ArrayList;
 
 public class ProfileActivity extends AppCompatActivity {
@@ -33,23 +30,30 @@ public class ProfileActivity extends AppCompatActivity {
     private ArrayList<Post> postList = new ArrayList<>();
     private String userId;
 
+    private ImageView[] stars;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Initialize UI components
         profileImageView = findViewById(R.id.profileImage);
         gainedStarsTextView = findViewById(R.id.profileRatingText);
         bioTextView = findViewById(R.id.profileDescription);
         profileNameTextView = findViewById(R.id.profileName);
         desireRecyclerView = findViewById(R.id.desireRecyclerView);
 
-        // Initialize BottomNavigationBar
+        stars = new ImageView[]{
+                findViewById(R.id.star1),
+                findViewById(R.id.star2),
+                findViewById(R.id.star3),
+                findViewById(R.id.star4),
+                findViewById(R.id.star5)
+        };
+
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
         new BottomNavigationBar(this, bottomNavigationView, userId);
 
-        // Get the user ID from Firebase Auth
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             userId = currentUser.getUid();
@@ -57,24 +61,18 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(ProfileActivity.this, LoginActivity.class));
             finish();
-            return; // Ensure the rest of the code doesn't execute if the user isn't logged in
+            return;
         }
 
-        // Initialize Firebase Database
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Fetch user profile details
         fetchUserProfile();
-
-        // Setup RecyclerView for displaying user posts in horizontal scroll
         desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireAdapter = new DesireAdapter(postList);
         desireRecyclerView.setAdapter(desireAdapter);
 
-        // Fetch posts that belong to the signed-in user
         fetchUserPosts();
 
-        // Set click listener for settings icon
         ImageView settingIcon = findViewById(R.id.settingbutton);
         settingIcon.setOnClickListener(v -> {
             if (!isFinishing()) {
@@ -94,11 +92,11 @@ public class ProfileActivity extends AppCompatActivity {
                     String username = dataSnapshot.child("username").getValue(String.class);
                     Integer rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
 
-                    // Set user profile data if the activity is still active
                     if (rateGain != null && !isDestroyed()) {
                         gainedStarsTextView.setText(String.valueOf(rateGain));
                         bioTextView.setText(bio);
                         profileNameTextView.setText(username);
+                        updateStarRating(rateGain);
 
                         if (profileImageUrl != null) {
                             Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
@@ -109,12 +107,18 @@ public class ProfileActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle possible errors
                 if (!isFinishing()) {
                     Toast.makeText(ProfileActivity.this, "Failed to load profile", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void updateStarRating(int rateGain) {
+        int fullStars = Math.min(rateGain / 20, 5);
+        for (int i = 0; i < stars.length; i++) {
+            stars[i].setImageResource(i < fullStars ? R.drawable.star_fill : R.drawable.star_empty);
+        }
     }
 
     private void fetchUserPosts() {
@@ -140,11 +144,5 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Nullify any listeners or pending operations here to prevent memory leaks or illegal state changes
     }
 }
