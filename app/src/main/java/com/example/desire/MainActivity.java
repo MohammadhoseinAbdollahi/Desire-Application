@@ -16,10 +16,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
         // Initialize Firebase
         FirebaseApp.initializeApp(this);
+        setContentView(R.layout.activity_main);
+
+
 
         // Display the GIF
         ImageView splashImage = findViewById(R.id.splash_image);

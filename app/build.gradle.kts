@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.desire"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -34,8 +34,8 @@ dependencies {
     implementation("com.google.android.material:material:1.5.0")
     implementation("androidx.activity:activity-ktx:1.4.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.2")
-
-    implementation(platform("com.google.firebase:firebase-bom:29.0.3"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-storage")
