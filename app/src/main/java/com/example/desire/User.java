@@ -23,9 +23,10 @@ public class User {
     public String profileImageUrl;
     public int RateGain;
     public int RateGive;
-    public List<String> followers;
-    public List<String> following;
+    public List<String> samedesire;
+    public List<String> blackdesire;
     public List<String> posts;
+    public List<String> rateddesire;
 
 
     public User() {
@@ -44,9 +45,15 @@ public class User {
         this.profileImageUrl = "";
         this.RateGain = 0;
         this.RateGive = 0;
-        this.followers = new ArrayList<>();
-        this.following = new ArrayList<>();
+        this.samedesire = new ArrayList<>();
+        this.samedesire.add("");
+        this.blackdesire = new ArrayList<>();
+        this.blackdesire.add("");
         this.posts = new ArrayList<>();
+        this.posts.add(""); // Add an empty value
+        this.rateddesire = new ArrayList<>();
+        this.rateddesire.add(""); // Add an empty value
+
     }
 
     public String getUsername() {
@@ -74,9 +81,10 @@ public class User {
         userValues.put("profileImageUrl", profileImageUrl);
         userValues.put("RateGain", RateGain);
         userValues.put("RateGive", RateGive);
-        userValues.put("followers", followers);
-        userValues.put("following", following);
+        userValues.put("samedesire", samedesire);
+        userValues.put("blackdesire", blackdesire);
         userValues.put("desires", posts);
+        userValues.put("rateddesire", rateddesire);
 
         databaseReference.setValue(userValues).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override

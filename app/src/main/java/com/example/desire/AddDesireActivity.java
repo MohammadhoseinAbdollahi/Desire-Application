@@ -191,7 +191,7 @@ public class AddDesireActivity extends AppCompatActivity {
                 String username = user.getUsername();
 
                 // Create a new post object with the current user's ID and username
-                Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true, username);
+                Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true, username, 0.0, 0, 0);
 
                 mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
