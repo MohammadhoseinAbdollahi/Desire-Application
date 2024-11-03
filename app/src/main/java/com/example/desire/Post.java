@@ -8,6 +8,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Post {
     private String userId;
     private String postId;
@@ -24,6 +29,7 @@ public class Post {
     private double totalRating;
     private int sameDesireCount;
     private int numberOfRatings;
+    public Map<String, String> comments;
 
 
     // Default constructor required for calls to DataSnapshot.getValue(Post.class)
@@ -49,10 +55,15 @@ public class Post {
         this.totalRating = totalRating;
         this.sameDesireCount = sameDesireCount;
         this.numberOfRatings = numberOfRatings;
+        this.comments = new HashMap<>();
+        this.comments.put("", "");
+
     }
 
     // Getters and Setters for new attributes
-
+    public void addComment(String userId, String commentText) {
+    this.comments.put(userId, commentText);
+    }
     public double getTotalRating() {
         return totalRating;
     }

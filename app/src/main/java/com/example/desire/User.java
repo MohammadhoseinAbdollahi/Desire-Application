@@ -4,8 +4,12 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +66,7 @@ public class User {
 
     public interface SaveToFirebaseCallback {
         void onSuccess();
+
         void onFailure(Exception e);
     }
 
@@ -90,13 +95,35 @@ public class User {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    callback.onSuccess();
+                    // Query existing users
+                    DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users");
+                    usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            UserRateAvrages userRateAvrages = new UserRateAvrages();
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                String existingUserId = snapshot.getKey();
+                                if (!existingUserId.equals(userId)) {
+                                    // Create UserInteraction records
+                                    UserInteraction interactionWithNewUser = new UserInteraction(userId, 0, 0.0);
+                                    userRateAvrages.saveUserInteraction(existingUserId, interactionWithNewUser);
+
+                                    UserInteraction interactionWithExistingUser = new UserInteraction(existingUserId, 0, 0.0);
+                                    userRateAvrages.saveUserInteraction(userId, interactionWithExistingUser);
+                                }
+                            }
+                            callback.onSuccess();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            callback.onFailure(databaseError.toException());
+                        }
+                    });
                 } else {
                     callback.onFailure(task.getException());
                 }
             }
         });
-
-        }
-
+    }
 }
