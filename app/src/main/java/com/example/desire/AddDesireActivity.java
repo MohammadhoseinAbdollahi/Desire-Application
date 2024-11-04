@@ -31,6 +31,7 @@ import com.google.firebase.storage.UploadTask;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -39,20 +40,15 @@ public class AddDesireActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int CAMERA_REQUEST_CODE = 2;
 
-    private EditText editLocation;
-    private EditText editCaption;
-    private Button buttonHalfDay;
-    private Button buttonOneMonth;
-    private Button buttonOneDay;
-    private Button buttonYear;
-    private Button buttonWeek;
-    private Button buttonNoExpiration;
-    private Button buttonPost;
+    private EditText editLocation, editCaption;
+    private Button buttonHalfDay, buttonOneMonth, buttonOneDay, buttonYear, buttonWeek, buttonNoExpiration, buttonPost;
     private ImageView imageAdd;
     private Uri imageUri;
     private StorageReference mStorageRef;
     private String userId;
-
+    private double userRating;
+    private String selectedKind;
+    private String expirationDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,19 +57,10 @@ public class AddDesireActivity extends AppCompatActivity {
 
         mStorageRef = FirebaseStorage.getInstance().getReference("posts");
 
-        // Get the user ID of the currently signed-in user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-            userId = currentUser.getUid();  // This will be used to identify the user in the post
+            userId = currentUser.getUid();
         }
-
-        ImageView backButton = findViewById(R.id.back_button);
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
 
         editLocation = findViewById(R.id.edit_location);
         editCaption = findViewById(R.id.edit_caption);
@@ -86,133 +73,119 @@ public class AddDesireActivity extends AppCompatActivity {
         buttonPost = findViewById(R.id.button_post);
         imageAdd = findViewById(R.id.image_add);
 
-        // Set visibility button listeners
-        View.OnClickListener visibilityClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Button button = (Button) view;
-                String visibility = button.getText().toString();
-                Toast.makeText(AddDesireActivity.this, "Visibility: " + visibility, Toast.LENGTH_SHORT).show();
-                // Store visibility in a variable or use as needed
-            }
-        };
+        setButtonVisibilityBasedOnRating();
 
-        buttonHalfDay.setOnClickListener(visibilityClickListener);
-        buttonOneMonth.setOnClickListener(visibilityClickListener);
-        buttonOneDay.setOnClickListener(visibilityClickListener);
-        buttonYear.setOnClickListener(visibilityClickListener);
-        buttonWeek.setOnClickListener(visibilityClickListener);
-        buttonNoExpiration.setOnClickListener(visibilityClickListener);
+        // Set up button listeners to set kind and calculate expiration date
+        buttonHalfDay.setOnClickListener(v -> setKindAndExpiration("Half Day", 0, 12));
+        buttonOneDay.setOnClickListener(v -> setKindAndExpiration("One Day", 1, 0));
+        buttonWeek.setOnClickListener(v -> setKindAndExpiration("One Week", 7, 0));
+        buttonOneMonth.setOnClickListener(v -> setKindAndExpiration("One Month", 30, 0));
+        buttonYear.setOnClickListener(v -> setKindAndExpiration("One Year", 365, 0));
+        buttonNoExpiration.setOnClickListener(v -> setKindAndExpiration("No Expiration", -1, 0));
 
-        // Set image add listener
-        imageAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Open gallery or camera
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        buttonPost.setOnClickListener(view -> {
+            String location = editLocation.getText().toString();
+            String caption = editCaption.getText().toString();
+
+            if (imageUri != null) {
+                uploadImageToFirebase(location, caption);
+            } else {
+                Toast.makeText(AddDesireActivity.this, "Please select an image", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Set post button listener
-        buttonPost.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String location = editLocation.getText().toString();
-                String caption = editCaption.getText().toString();
+        imageAdd.setOnClickListener(view -> {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        });
+    }
 
-                if (imageUri != null) {
-                    uploadImageToFirebase(location, caption);
-                } else {
-                    Toast.makeText(AddDesireActivity.this, "Please select an image", Toast.LENGTH_SHORT).show();
+    private void setButtonVisibilityBasedOnRating() {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    userRating = user.getRating();
+
+                    buttonHalfDay.setVisibility(userRating >= 2.0 ? View.VISIBLE : View.GONE);
+                    buttonOneDay.setVisibility(userRating >= 2.5 ? View.VISIBLE : View.GONE);
+                    buttonWeek.setVisibility(userRating >= 3.0 ? View.VISIBLE : View.GONE);
+                    buttonOneMonth.setVisibility(userRating >= 3.5 ? View.VISIBLE : View.GONE);
+                    buttonYear.setVisibility(userRating >= 4.0 ? View.VISIBLE : View.GONE);
+                    buttonNoExpiration.setVisibility(userRating >= 4.5 ? View.VISIBLE : View.GONE);
                 }
             }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(AddDesireActivity.this, "Failed to fetch user rating", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            imageUri = data.getData();
-            imageAdd.setImageURI(imageUri);
-        } else if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-            imageUri = getImageUri(photo);
-            imageAdd.setImageBitmap(photo);
-        }
-    }
+    private void setKindAndExpiration(String kind, int days, int hours) {
+        this.selectedKind = kind;
 
-    private Uri getImageUri(Bitmap bitmap) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
-        return Uri.parse(path);
+        // Calculate the expiration date based on the current date, days, and hours
+        if (days >= 0 || hours > 0) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, days);
+            calendar.add(Calendar.HOUR_OF_DAY, hours);
+            expirationDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(calendar.getTime());
+        } else {
+            expirationDate = "No Expiration";
+        }
+
+        Toast.makeText(this, "Kind: " + kind + "\nExpiration Date: " + expirationDate, Toast.LENGTH_SHORT).show();
     }
 
     private void uploadImageToFirebase(String location, String caption) {
         if (imageUri != null) {
             StorageReference fileReference = mStorageRef.child(System.currentTimeMillis() + ".jpg");
             fileReference.putFile(imageUri)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
-                                    String imageUrl = uri.toString();
-                                    savePostToDatabase(location, caption, imageUrl);
-                                }
-                            });
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(AddDesireActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                        String imageUrl = uri.toString();
+                        savePostToDatabase(location, caption, imageUrl);
+                    }))
+                    .addOnFailureListener(e -> Toast.makeText(AddDesireActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show());
         }
     }
 
     private void savePostToDatabase(String location, String caption, String imageUrl) {
-    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("posts");
-    String postId = mDatabase.push().getKey();
-    String currentDate = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(new Date());
-    String postDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("posts");
+        String postId = mDatabase.push().getKey();
+        String currentDate = new SimpleDateFormat("dd MMM, yyyy", Locale.getDefault()).format(new Date());
+        String postDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
-    // Fetch the current user's username
-    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
-    userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-        @Override
-        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-            User user = dataSnapshot.getValue(User.class);
-            if (user != null) {
-                String username = user.getUsername();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    String username = user.getUsername();
+                    Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true, username, 0.0, 0, 0, selectedKind, expirationDate);
 
-                // Create a new post object with the current user's ID and username
-                Post post = new Post(userId, postId, imageUrl, 0.0, 0, location, currentDate, caption, false, postDate, true, username, 0.0, 0, 0);
-
-                mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(AddDesireActivity.this, "Post added successfully!", Toast.LENGTH_SHORT).show();
-                        // Redirect to HomeActivity and finish this activity
-                        Intent intent = new Intent(AddDesireActivity.this, HomeActivity.class);
-                        intent.putExtra("userId", userId);
-                        startActivity(intent);
-                        finish();
-                    } else {
-
-                        Toast.makeText(AddDesireActivity.this, "Failed to add post.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    mDatabase.child(postId).setValue(post).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(AddDesireActivity.this, "Post added successfully!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(AddDesireActivity.this, HomeActivity.class);
+                            intent.putExtra("userId", userId);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(AddDesireActivity.this, "Failed to add post.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
-        }
 
-        @Override
-        public void onCancelled(@NonNull DatabaseError databaseError) {
-            Toast.makeText(AddDesireActivity.this, "Failed to fetch username.", Toast.LENGTH_SHORT).show();
-        }
-    });
-}
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(AddDesireActivity.this, "Failed to fetch username.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

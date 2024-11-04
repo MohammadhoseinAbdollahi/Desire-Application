@@ -29,6 +29,8 @@ public class Post {
     private double totalRating;
     private int sameDesireCount;
     private int numberOfRatings;
+    private String kind;
+    private String endDate;
     public Map<String, String> comments;
 
 
@@ -39,7 +41,7 @@ public class Post {
     // Constructor with parameters
     public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location,
                 String date, String description, boolean isRated, String postDate, boolean visibility, String username,
-                double totalRating, int sameDesireCount, int numberOfRatings) {
+                double totalRating, int sameDesireCount, int numberOfRatings, String kind, String endDate) {
         this.userId = userId;
         this.postId = postId;
         this.imageUrl = imageUrl;
@@ -53,6 +55,8 @@ public class Post {
         this.visibility = visibility;
         this.username = username;
         this.totalRating = totalRating;
+        this.kind = kind;
+        this.endDate = endDate;
         this.sameDesireCount = sameDesireCount;
         this.numberOfRatings = numberOfRatings;
         this.comments = new HashMap<>();
@@ -185,6 +189,18 @@ public class Post {
     public void setUsername(String username) {
         this.username = username;
     }
+    public String getKind() {
+        return kind;
+    }
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+    public String getEndDate() {
+        return endDate;
+    }
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
 
     public void loadComments(CommentsLoadCallback callback) {
         DatabaseReference commentsRef = FirebaseDatabase.getInstance().getReference("posts").child(postId).child("comments");
@@ -209,6 +225,9 @@ public class Post {
             }
         });
     }
+
+
+
     public interface CommentsLoadCallback {
         void onCommentsLoaded(List<Map.Entry<String, String>> comments);
         void onError(Exception e);

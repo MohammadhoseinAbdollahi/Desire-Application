@@ -34,7 +34,7 @@ public class ExploreActivity extends AppCompatActivity {
     private List<Post> desireList;
     private List<Post> allPosts;  // Store all posts to manage visibility based on rating
     private TextView usernameexplore;
-    private boolean isFirstPostRated = false;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,16 +47,18 @@ public class ExploreActivity extends AppCompatActivity {
 
         desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireList = new ArrayList<>();
-        allPosts = new ArrayList<>();  // Initialize to hold all posts
+        allPosts = new ArrayList<>();
         desireAdapter = new DesireAdapter(desireList);
         desireRecyclerView.setAdapter(desireAdapter);
 
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
         new BottomNavigationBar(this, bottomNavigationView, userId);
-
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            userId = currentUser.getUid();
+        sameDesireButton.setOnClickListener(v -> {
+             mDatabase.child("posts").child(desireList.get(0).getPostId()).child("samedesirecount").setValue(desireList.get(0).getSameDesireCount() + 1);
+             Toast.makeText(ExploreActivity.this, "Desire added to your list", Toast.LENGTH_SHORT).show();});
+        FirebaseUser currentUserAuth = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUserAuth != null) {
+            userId = currentUserAuth.getUid();
         } else {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(ExploreActivity.this, LoginActivity.class));
@@ -65,11 +67,24 @@ public class ExploreActivity extends AppCompatActivity {
         }
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        loadUserData();
+    }
 
-        loadDesireItems();
+    private void loadUserData() {
+        DatabaseReference userRef = mDatabase.child("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                currentUser = dataSnapshot.getValue(User.class);
+                if (currentUser != null) {
+                    loadDesireItems();
+                }
+            }
 
-        sameDesireButton.setOnClickListener(v -> {
-            Toast.makeText(ExploreActivity.this, "Same Desire Clicked!", Toast.LENGTH_SHORT).show();
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(ExploreActivity.this, "Failed to load user data", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -80,15 +95,14 @@ public class ExploreActivity extends AppCompatActivity {
                 allPosts.clear();
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Post post = postSnapshot.getValue(Post.class);
-                    if (post != null && !post.getUserId().equals(userId)) {  // Only add posts with different userIds
+                    if (post != null && post.isVisibility() && !currentUser.rateddesire.contains(post.getPostId())) {
                         allPosts.add(post);
                     }
                 }
 
-                // Load the first post only initially
                 if (!allPosts.isEmpty()) {
                     desireList.clear();
-                    desireList.add(allPosts.get(0));  // Add only the first post to desireList
+                    desireList.add(allPosts.get(0));
                     desireAdapter.notifyDataSetChanged();
                 }
             }
@@ -189,13 +203,15 @@ public class ExploreActivity extends AppCompatActivity {
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 Toast.makeText(ExploreActivity.this, "Rated " + rating + " stars!", Toast.LENGTH_SHORT).show();
-                                isFirstPostRated = true;
 
-                                // Check if more posts are available to load
-                                if (isFirstPostRated && desireList.size() < allPosts.size()) {
-                                    desireList.add(allPosts.get(desireList.size()));  // Add the next post
+                                // Update user's rated desires list in Firebase
+                                currentUser.rateddesire.add(post.getPostId());
+                                mDatabase.child("users").child(userId).child("rateddesire").setValue(currentUser.rateddesire);
+
+                                // Load next post if available
+                                if (desireList.size() < allPosts.size()) {
+                                    desireList.add(allPosts.get(desireList.size()));
                                     desireAdapter.notifyDataSetChanged();
-                                    isFirstPostRated = false;  // Reset to allow sequential rating
                                 }
                             } else {
                                 Toast.makeText(ExploreActivity.this, "Failed to update rating", Toast.LENGTH_SHORT).show();
@@ -205,4 +221,3 @@ public class ExploreActivity extends AppCompatActivity {
         }
     }
 }
-

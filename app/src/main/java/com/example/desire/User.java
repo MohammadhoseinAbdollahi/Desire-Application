@@ -64,6 +64,10 @@ public class User {
         return username;
     }
 
+    public double getRating() {
+    return rating;
+    }
+
     public interface SaveToFirebaseCallback {
         void onSuccess();
 
