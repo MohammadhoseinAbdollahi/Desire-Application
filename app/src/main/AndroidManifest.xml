@@ -22,9 +22,7 @@
         android:roundIcon="@drawable/blacklogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity
-            android:name=".Comments"
-            android:exported="false" />
+
         <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
@@ -59,6 +57,7 @@
         <activity
             android:name=".AddDesireActivity"
             android:exported="false"></activity>
+
     </application>
 
 </manifest>

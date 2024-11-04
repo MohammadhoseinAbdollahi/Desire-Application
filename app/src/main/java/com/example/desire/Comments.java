@@ -28,6 +28,9 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
     public Comments(Map<String, String> comments) {
         this.commentsList = new ArrayList<>(comments.entrySet());
     }
+    public Comments() {
+        this.commentsList = new ArrayList<>();
+    }
 
     @NonNull
     @Override
