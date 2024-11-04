@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -21,55 +22,43 @@
         android:roundIcon="@drawable/blacklogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-
+        <activity
+            android:name=".Comments"
+            android:exported="false" />
         <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Login Activity -->
+        </activity> <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"
-            android:exported="false" />
-
-        <!-- Signup Activity -->
+            android:exported="false" /> <!-- Signup Activity -->
         <activity
             android:name=".SignupActivity"
-            android:exported="false" />
-
-        <!-- Signup Form Activity -->
+            android:exported="false" /> <!-- Signup Form Activity -->
         <activity
             android:name=".SignupFormActivity"
-            android:exported="false" />
-
-        <!-- Profile Activity -->
+            android:exported="false" /> <!-- Profile Activity -->
         <activity
             android:name=".ProfileActivity"
-            android:exported="false" />
-
-        <!-- Settings Activity -->
+            android:exported="false" /> <!-- Settings Activity -->
         <activity
             android:name=".SettingsActivity"
-            android:exported="false" />
-
-        <!-- Home Activity -->
+            android:exported="false" /> <!-- Home Activity -->
         <activity
             android:name=".HomeActivity"
-            android:exported="false" />
-
-        <!-- Explore Activity -->
+            android:exported="false" /> <!-- Explore Activity -->
         <activity
             android:name=".ExploreActivity"
             android:exported="false" />
-
-        <activity android:name=".AddDesireActivity"
-            android:exported="false" >
-</activity>
+        <activity
+            android:name=".AddDesireActivity"
+            android:exported="false"></activity>
     </application>
 
 </manifest>

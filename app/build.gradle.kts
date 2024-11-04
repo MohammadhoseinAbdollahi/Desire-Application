@@ -42,6 +42,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
 
     implementation("com.github.bumptech.glide:glide:4.13.0")
+    implementation(libs.activity)
     annotationProcessor("com.github.bumptech.glide:compiler:4.13.0")
 
     testImplementation("junit:junit:4.13.2")

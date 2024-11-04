@@ -185,4 +185,32 @@ public class Post {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public void loadComments(CommentsLoadCallback callback) {
+        DatabaseReference commentsRef = FirebaseDatabase.getInstance().getReference("posts").child(postId).child("comments");
+
+        commentsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                comments.clear();
+                for (DataSnapshot commentSnapshot : dataSnapshot.getChildren()) {
+                    String userId = commentSnapshot.getKey();
+                    String commentText = commentSnapshot.getValue(String.class);
+                    if (userId != null && commentText != null) {
+                        comments.put(userId, commentText);
+                    }
+                }
+                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet()));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                callback.onError(databaseError.toException());
+            }
+        });
+    }
+    public interface CommentsLoadCallback {
+        void onCommentsLoaded(List<Map.Entry<String, String>> comments);
+        void onError(Exception e);
+    }
 }

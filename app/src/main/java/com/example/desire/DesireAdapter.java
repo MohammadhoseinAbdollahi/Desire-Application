@@ -1,22 +1,38 @@
 package com.example.desire;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireViewHolder> {
 
     private ArrayList<Post> postList;
+    private Context context;
 
+    public DesireAdapter(ArrayList<Post> postList, Context context) {
+        this.postList = postList;
+        this.context = context;
+    }
     public DesireAdapter(ArrayList<Post> postList) {
         this.postList = postList;
     }
@@ -24,36 +40,98 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
     @NonNull
     @Override
     public DesireViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate the desire_item layout
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.desire_item, parent, false);
         return new DesireViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull DesireViewHolder holder, int position) {
-        // Get the current post object
         Post post = postList.get(position);
 
-        // Bind the data to the view holder elements
         holder.desireLocation.setText(post.getLocation());
         holder.desireDate.setText(post.getDate());
         holder.desireDescription.setText(post.getDescription());
-
-        // Get the actual rating and comments count
         holder.desireRating.setText(String.valueOf(post.getRating()));
         holder.desireComments.setText(String.valueOf(post.getCommentsCount()));
 
-        // Load the image with Glide
         Glide.with(holder.itemView.getContext()).load(post.getImageUrl()).into(holder.myDesiresImage);
+
+        // Show comments in a BottomSheetDialog when the profile image is clicked
+        holder.myDesiresImage.setOnClickListener(v -> openCommentsBottomSheet(post));
     }
 
     @Override
     public int getItemCount() {
-        return postList.size(); // Return the size of the list
+        return postList.size();
     }
 
-    // ViewHolder class to hold reference to each item view
-    public static class DesireViewHolder extends RecyclerView.ViewHolder {
+    private void openCommentsBottomSheet(Post post) {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
+        View bottomSheetView = LayoutInflater.from(context).inflate(R.layout.layout_bottom_sheet_comments, null);
+
+        RecyclerView commentsRecyclerView = bottomSheetView.findViewById(R.id.commentsRecyclerView);
+        EditText inputComment = bottomSheetView.findViewById(R.id.inputComment);
+        Button submitComment = bottomSheetView.findViewById(R.id.submitComment);
+
+        // Set up the RecyclerView for comments
+        post.loadComments(new Post.CommentsLoadCallback() {
+            @Override
+            public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
+                Comments commentsAdapter = new Comments((Map<String, String>) comments);
+                commentsRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+                commentsRecyclerView.setAdapter(commentsAdapter);
+
+                // Handle the submit button click for adding a new comment
+                submitComment.setOnClickListener(v -> {
+                    String newComment = inputComment.getText().toString().trim();
+                    if (!newComment.isEmpty()) {
+                        addCommentToPost(post, newComment, commentsAdapter);
+                        inputComment.setText(""); // Clear input field after submission
+                    } else {
+                        Toast.makeText(context, "Please enter a comment", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                bottomSheetDialog.setContentView(bottomSheetView);
+                bottomSheetDialog.show();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(context, "Failed to load comments", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+        // Method to add a new comment to the post
+        private void addCommentToPost(Post post, String commentText, Comments commentsAdapter) {
+            DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getPostId()).child("comments");
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            // Add the comment to Firebase
+            postRef.child(userId).setValue(commentText).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // Reload comments to reflect the new addition
+                    post.loadComments(new Post.CommentsLoadCallback() {
+                        @Override
+                        public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
+                            commentsAdapter.setComments((Map<String, String>) comments); // Update the adapter data
+                            commentsAdapter.notifyDataSetChanged(); // Refresh the adapter to show the new comment
+                            Toast.makeText(context, "Comment added", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Toast.makeText(context, "Failed to reload comments", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(context, "Failed to add comment", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+
+        public static class DesireViewHolder extends RecyclerView.ViewHolder {
 
         public ImageView myDesiresImage;
         public TextView desireLocation, desireDate, desireDescription, desireRating, desireComments;
