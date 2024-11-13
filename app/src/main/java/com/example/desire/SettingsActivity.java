@@ -53,8 +53,10 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.manage_account).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SettingsActivity.this, "Manage Account Clicked", Toast.LENGTH_SHORT).show();
-                // Handle manage account logic here
+                // go to the ProfileSetting activity
+                Intent intent = new Intent(SettingsActivity.this, ProfileSetting.class);
+                intent.putExtra("userId", userId);
+                startActivity(intent);
             }
         });
 
