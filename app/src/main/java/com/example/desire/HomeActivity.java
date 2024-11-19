@@ -1,97 +1,107 @@
 package com.example.desire;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.bumptech.glide.Glide;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private LinearLayout desireContainer;
+    private RecyclerView desireRecyclerView;
+    private DesireAdapter desireAdapter;
+    private List<Post> desireList;
+    private List<Post> allPosts;
+    private DatabaseReference mDatabase;
     private String userId;
-    private Button addDesireButton;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        addDesireButton = findViewById(R.id.addDesireButton);
-        desireContainer = findViewById(R.id.desireContainer);
-        // Initialize BottomNavigationBar
-        View bottomNavigationView = findViewById(R.id.bottom_navigation);
-        new BottomNavigationBar(this, bottomNavigationView, userId);
 
-        // Get the user ID from the intent
-        userId = getIntent().getStringExtra("userId");
-        addDesireButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openAddDesireActivity(view);
-            }
+        // Initialize RecyclerView
+        desireRecyclerView = findViewById(R.id.desireScrollView);
+        desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        });
+        // Initialize variables
+        desireList = new ArrayList<>();
+        allPosts = new ArrayList<>();
+        desireAdapter = new DesireAdapter((ArrayList<Post>) desireList, this);
+        desireRecyclerView.setAdapter(desireAdapter);
 
-        // Load and add desire items
-        loadDesireItems();
-
-        addDesireButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Open AddDesireActivity with the user ID
-                Intent intent = new Intent(HomeActivity.this, AddDesireActivity.class);
-                intent.putExtra("userId", userId);
-                startActivity(intent);
-
-            }
-        });
-    }
-
-    private void loadDesireItems() {
-        // Mock data for demonstration purposes
-        for (int i = 0; i < 3; i++) {
-            View desireItemView = LayoutInflater.from(this).inflate(R.layout.desire_item, desireContainer, false);
-
-            ImageView myDesiresImage = desireItemView.findViewById(R.id.myDesiresImage);
-            TextView desireRating = desireItemView.findViewById(R.id.desireRating);
-            TextView desireComments = desireItemView.findViewById(R.id.desireComments);
-            TextView desireLocation = desireItemView.findViewById(R.id.desireLocation);
-            TextView desireDate = desireItemView.findViewById(R.id.desireDate);
-            TextView desireDescription = desireItemView.findViewById(R.id.desireDescription);
-
-            // Mock data
-            String imageUrl = "https://example.com/path/to/image.jpg";
-            double rating = 3.9;
-            int comments = 12;
-            String location = "Genova,Italy";
-            String date = "23 May,2024";
-            String description = "Sun VS Sunglasses.";
-
-            // Load data into views
-            Glide.with(this).load(imageUrl).into(myDesiresImage);
-            desireRating.setText(String.valueOf(rating));
-            desireComments.setText(String.valueOf(comments));
-            desireLocation.setText(location);
-            desireDate.setText(date);
-            desireDescription.setText(description);
-
-            desireContainer.addView(desireItemView);
+        // Firebase setup
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            userId = firebaseUser.getUid();
+            mDatabase = FirebaseDatabase.getInstance().getReference();
+            loadUserData();
+        } else {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 
-    // open add desire activity when add desire button is clicked with userid
-    public void openAddDesireActivity(View view) {
-        Intent intent = new Intent(this, AddDesireActivity.class);
-        intent.putExtra("userId", userId);
-        startActivity(intent);
+    private void loadUserData() {
+        DatabaseReference userRef = mDatabase.child("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                currentUser = snapshot.getValue(User.class);
+                if (currentUser != null) {
+                    loadFilteredPosts();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(HomeActivity.this, "Failed to load user data", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
+    private void loadFilteredPosts() {
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                allPosts.clear();
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                    Post post = postSnapshot.getValue(Post.class);
+
+                    if (post != null && post.isVisibility()) {
+                        boolean isInSameDesire = currentUser.samedesire.contains(post.getUserId());
+                        boolean isNotBlacklisted = !currentUser.blackdesire.contains(post.getUserId());
+                        boolean hasHighInteraction = UserInteraction.getAverageRating() >= 4.0;
+
+                        if ((isInSameDesire || hasHighInteraction) && isNotBlacklisted) {
+                            allPosts.add(post);
+                        }
+                    }
+                }
+
+                desireList.clear();
+                desireList.addAll(allPosts);
+                desireAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(HomeActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
-
-
-

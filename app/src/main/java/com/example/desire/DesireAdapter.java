@@ -37,6 +37,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         this.postList = postList;
     }
 
+
     @NonNull
     @Override
     public DesireViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -58,6 +59,12 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
 
         // Show comments in a BottomSheetDialog when the profile image is clicked
         holder.myDesiresImage.setOnClickListener(v -> openCommentsBottomSheet(post));
+
+        // Long-click listener for deleting a post
+        holder.itemView.setOnLongClickListener(v -> {
+            confirmDeletePost(post, position);
+            return true;
+        });
     }
 
     @Override
@@ -102,36 +109,58 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
             }
         });
     }
-        // Method to add a new comment to the post
-        private void addCommentToPost(Post post, String commentText, Comments commentsAdapter) {
-            DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getPostId()).child("comments");
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-            // Add the comment to Firebase
-            postRef.child(userId).setValue(commentText).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    // Reload comments to reflect the new addition
-                    post.loadComments(new Post.CommentsLoadCallback() {
-                        @Override
-                        public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
-                            commentsAdapter.setComments((Map<String, String>) comments); // Update the adapter data
-                            commentsAdapter.notifyDataSetChanged(); // Refresh the adapter to show the new comment
-                            Toast.makeText(context, "Comment added", Toast.LENGTH_SHORT).show();
-                        }
+    private void addCommentToPost(Post post, String commentText, Comments commentsAdapter) {
+        DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getPostId()).child("comments");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                        @Override
-                        public void onError(Exception e) {
-                            Toast.makeText(context, "Failed to reload comments", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    Toast.makeText(context, "Failed to add comment", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+        // Add the comment to Firebase
+        postRef.child(userId).setValue(commentText).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                // Reload comments to reflect the new addition
+                post.loadComments(new Post.CommentsLoadCallback() {
+                    @Override
+                    public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
+                        commentsAdapter.setComments((Map<String, String>) comments); // Update the adapter data
+                        commentsAdapter.notifyDataSetChanged(); // Refresh the adapter to show the new comment
+                        Toast.makeText(context, "Comment added", Toast.LENGTH_SHORT).show();
+                    }
 
+                    @Override
+                    public void onError(Exception e) {
+                        Toast.makeText(context, "Failed to reload comments", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(context, "Failed to add comment", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-        public static class DesireViewHolder extends RecyclerView.ViewHolder {
+    private void confirmDeletePost(Post post, int position) {
+        // Show confirmation dialog
+        new android.app.AlertDialog.Builder(context)
+                .setTitle("Delete Post")
+                .setMessage("Are you sure you want to delete this post?")
+                .setPositiveButton("Yes", (dialog, which) -> deletePost(post, position))
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void deletePost(Post post, int position) {
+        DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(post.getPostId());
+        postRef.removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                postList.remove(position);
+                notifyItemRemoved(position);
+                Toast.makeText(context, "Post deleted successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "Failed to delete post", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public static class DesireViewHolder extends RecyclerView.ViewHolder {
 
         public ImageView myDesiresImage;
         public TextView desireLocation, desireDate, desireDescription, desireRating, desireComments;

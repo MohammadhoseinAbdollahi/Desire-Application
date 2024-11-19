@@ -9,10 +9,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -21,6 +23,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,21 +32,22 @@ public class ExploreActivity extends AppCompatActivity {
     private RecyclerView desireRecyclerView;
     private DatabaseReference mDatabase;
     private String userId;
-    private Button sameDesireButton;
+    private Button sameDesireButton, blacklistButton;
     private DesireAdapter desireAdapter;
     private List<Post> desireList;
-    private List<Post> allPosts;  // Store all posts to manage visibility based on rating
-    private TextView usernameexplore;
+    private List<Post> allPosts;
+    private TextView usernameExplore;
     private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_explor);
+        setContentView(R.layout.activity_explore);
 
         desireRecyclerView = findViewById(R.id.desireScrollView);
         sameDesireButton = findViewById(R.id.addSameDesireButton);
-        usernameexplore = findViewById(R.id.exploreusername);
+        blacklistButton = findViewById(R.id.blacklistButton);
+        usernameExplore = findViewById(R.id.exploreusername);
 
         desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireList = new ArrayList<>();
@@ -53,9 +57,7 @@ public class ExploreActivity extends AppCompatActivity {
 
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
         new BottomNavigationBar(this, bottomNavigationView, userId);
-        sameDesireButton.setOnClickListener(v -> {
-             mDatabase.child("posts").child(desireList.get(0).getPostId()).child("samedesirecount").setValue(desireList.get(0).getSameDesireCount() + 1);
-             Toast.makeText(ExploreActivity.this, "Desire added to your list", Toast.LENGTH_SHORT).show();});
+
         FirebaseUser currentUserAuth = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUserAuth != null) {
             userId = currentUserAuth.getUid();
@@ -68,6 +70,9 @@ public class ExploreActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         loadUserData();
+
+        sameDesireButton.setOnClickListener(v -> addSameDesire());
+        blacklistButton.setOnClickListener(v -> addToBlacklist());
     }
 
     private void loadUserData() {
@@ -112,6 +117,40 @@ public class ExploreActivity extends AppCompatActivity {
                 Toast.makeText(ExploreActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void addSameDesire() {
+        if (!desireList.isEmpty()) {
+            Post currentPost = desireList.get(0);
+            if (currentPost != null) {
+                currentUser.samedesire.add(currentPost.getUserId());
+                mDatabase.child("users").child(userId).child("samedesire").setValue(currentUser.samedesire)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ExploreActivity.this, "Added to Same Desire list", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(ExploreActivity.this, "Failed to add to Same Desire list", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        }
+    }
+
+    private void addToBlacklist() {
+        if (!desireList.isEmpty()) {
+            Post currentPost = desireList.get(0);
+            if (currentPost != null) {
+                currentUser.blackdesire.add(currentPost.getUserId());
+                mDatabase.child("users").child(userId).child("blackdesire").setValue(currentUser.blackdesire)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ExploreActivity.this, "Added to Blacklist", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(ExploreActivity.this, "Failed to add to Blacklist", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        }
     }
 
     class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireViewHolder> {
@@ -171,7 +210,7 @@ public class ExploreActivity extends AppCompatActivity {
                 desireDate.setText(post.getDate());
                 desireDescription.setText(post.getDescription());
                 username.setText(post.getUsername());
-                usernameexplore.setText(post.getUsername());
+                usernameExplore.setText(post.getUsername());
                 setupStarRating(post);
             }
 

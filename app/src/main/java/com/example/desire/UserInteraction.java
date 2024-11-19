@@ -28,4 +28,8 @@ public class UserInteraction {
         result.put("averageRate", averageRate);
         return result;
     }
+
+    public static double getAverageRating() {
+        return averageRate;
+    }
 }

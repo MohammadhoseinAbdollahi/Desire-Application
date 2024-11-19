@@ -60,7 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.my_followers).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.adjust_your_desire).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(SettingsActivity.this, "My Followers and Following Clicked", Toast.LENGTH_SHORT).show();
