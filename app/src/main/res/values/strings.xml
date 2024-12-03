@@ -5,6 +5,8 @@
     <string name="profile_security">Profile Security</string>
     <string name="manage_account">Manage Account</string>
     <string name="my_followers">My Followers and Following</string>
+    <string name="same_desire">Same Desire</string>
+    <string name="blacklist">Blacklist</string>
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->

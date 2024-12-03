@@ -7,7 +7,7 @@ public class UserInteraction {
     public String subUserId;
     public int countRate;
     public double totalRate;
-    public double averageRate;
+    public static double averageRate;
 
     public UserInteraction() {
         // Default constructor required for calls to DataSnapshot.getValue(UserInteraction.class)
@@ -17,7 +17,7 @@ public class UserInteraction {
         this.subUserId = subUserId;
         this.countRate = countRate;
         this.totalRate = totalRate;
-        this.averageRate = totalRate / countRate;
+        averageRate = totalRate / countRate;
     }
 
     public Map<String, Object> toMap() {

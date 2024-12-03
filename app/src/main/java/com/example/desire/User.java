@@ -68,6 +68,10 @@ public class User {
     return rating;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public interface SaveToFirebaseCallback {
         void onSuccess();
 

@@ -23,6 +23,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
         <activity
+            android:name=".UserListItemActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdjustDesireActivity"
+            android:exported="false" />
+        <activity
             android:name=".ManageMyPosts"
             android:exported="false" />
         <activity
