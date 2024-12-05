@@ -33,9 +33,9 @@ public class Post {
     private String endDate;
     public Map<String, String> comments;
 
-
     // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     public Post() {
+        this.comments = null;
     }
 
     // Constructor with parameters
@@ -51,7 +51,7 @@ public class Post {
         this.date = date;
         this.description = description;
         this.isRated = isRated;
-        this.postdate = postdate;
+        this.postdate = postDate;
         this.visibility = visibility;
         this.username = username;
         this.totalRating = totalRating;
@@ -59,15 +59,17 @@ public class Post {
         this.endDate = endDate;
         this.sameDesireCount = sameDesireCount;
         this.numberOfRatings = numberOfRatings;
-        this.comments = new HashMap<>();
-        this.comments.put("", "");
-
+        this.comments = null;
     }
 
     // Getters and Setters for new attributes
     public void addComment(String userId, String commentText) {
-    this.comments.put(userId, commentText);
+        if (this.comments == null) {
+            this.comments = new HashMap<>();
+        }
+        this.comments.put(userId, commentText);
     }
+
     public double getTotalRating() {
         return totalRating;
     }
@@ -189,15 +191,19 @@ public class Post {
     public void setUsername(String username) {
         this.username = username;
     }
+
     public String getKind() {
         return kind;
     }
+
     public void setKind(String kind) {
         this.kind = kind;
     }
+
     public String getEndDate() {
         return endDate;
     }
+
     public void setEndDate(String endDate) {
         this.endDate = endDate;
     }
@@ -208,6 +214,9 @@ public class Post {
         commentsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                if (comments == null) {
+                    comments = new HashMap<>();
+                }
                 comments.clear();
                 for (DataSnapshot commentSnapshot : dataSnapshot.getChildren()) {
                     String userId = commentSnapshot.getKey();
@@ -226,11 +235,30 @@ public class Post {
         });
     }
 
-
-
-
     public interface CommentsLoadCallback {
         void onCommentsLoaded(List<Map.Entry<String, String>> comments);
+
         void onError(Exception e);
+    }
+
+    public void ratePost(double newRating) {
+        // Increment the number of ratings
+        this.numberOfRatings += 1;
+
+        // Update the total rating
+        this.totalRating += newRating;
+
+        // Calculate the new average rating
+        this.rating = this.totalRating / this.numberOfRatings;
+
+        // Update the post in the database
+        DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(this.postId);
+        postRef.setValue(this).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                // Post rated successfully
+            } else {
+                // Handle failure
+            }
+        });
     }
 }

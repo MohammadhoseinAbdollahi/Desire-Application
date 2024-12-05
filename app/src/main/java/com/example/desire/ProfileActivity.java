@@ -91,12 +91,14 @@ public class ProfileActivity extends AppCompatActivity {
                     String bio = dataSnapshot.child("bio").getValue(String.class);
                     String username = dataSnapshot.child("username").getValue(String.class);
                     Integer rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
+                    Integer numRatings = dataSnapshot.child("numRatings").getValue(Integer.class);
+                    Double rating = dataSnapshot.child("rating").getValue(Double.class);
 
-                    if (rateGain != null && !isDestroyed()) {
+                    if (rateGain != null && numRatings != null && rating != null && !isDestroyed()) {
                         gainedStarsTextView.setText(String.valueOf(rateGain));
                         bioTextView.setText(bio);
                         profileNameTextView.setText(username);
-                        updateStarRating(rateGain);
+                        updateStarRating(rating);
 
                         if (profileImageUrl != null) {
                             Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
@@ -114,8 +116,8 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void updateStarRating(int rateGain) {
-        int fullStars = Math.min(rateGain / 20, 5);
+    private void updateStarRating(double rating) {
+        int fullStars = (int) Math.round(rating);
         for (int i = 0; i < stars.length; i++) {
             stars[i].setImageResource(i < fullStars ? R.drawable.star_fill : R.drawable.star_empty);
         }

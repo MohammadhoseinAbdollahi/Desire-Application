@@ -32,7 +32,6 @@ public class User {
     public List<String> posts;
     public List<String> rateddesire;
 
-
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
@@ -57,7 +56,6 @@ public class User {
         this.posts.add(""); // Add an empty value
         this.rateddesire = new ArrayList<>();
         this.rateddesire.add(""); // Add an empty value
-
     }
 
     public String getUsername() {
@@ -65,7 +63,7 @@ public class User {
     }
 
     public double getRating() {
-    return rating;
+        return rating;
     }
 
     public String getUserId() {
@@ -103,34 +101,78 @@ public class User {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    // Query existing users
-                    DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users");
-                    usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            UserRateAvrages userRateAvrages = new UserRateAvrages();
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                String existingUserId = snapshot.getKey();
-                                if (!existingUserId.equals(userId)) {
-                                    // Create UserInteraction records
-                                    UserInteraction interactionWithNewUser = new UserInteraction(userId, 0, 0.0);
-                                    userRateAvrages.saveUserInteraction(existingUserId, interactionWithNewUser);
-
-                                    UserInteraction interactionWithExistingUser = new UserInteraction(existingUserId, 0, 0.0);
-                                    userRateAvrages.saveUserInteraction(userId, interactionWithExistingUser);
-                                }
-                            }
-                            callback.onSuccess();
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                            callback.onFailure(databaseError.toException());
-                        }
-                    });
+                    callback.onSuccess();
                 } else {
                     callback.onFailure(task.getException());
                 }
+            }
+        });
+    }
+
+    public void updateRateGainAndRateGive() {
+        DatabaseReference interactionsRef = FirebaseDatabase.getInstance().getReference().child("userInteractions").child(userId);
+        interactionsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                int totalRateGain = 0;
+                int totalRateGive = 0;
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    UserInteraction interaction = snapshot.getValue(UserInteraction.class);
+                    if (interaction != null) {
+                        totalRateGain += interaction.countRate;
+                        totalRateGive += interaction.countRate;
+                    }
+                }
+                RateGain = totalRateGain;
+                RateGive = totalRateGive;
+                rating = (numRatings > 0) ? (double) RateGain / numRatings : 0;
+                saveToFirebase(userId, new SaveToFirebaseCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("User", "RateGain and RateGive updated successfully");
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e("User", "Failed to update RateGain and RateGive", e);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("User", "Failed to read user interactions", databaseError.toException());
+            }
+        });
+    }
+
+    public void rateUser(String targetUserId, int rating) {
+        DatabaseReference targetUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(targetUserId);
+        targetUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User targetUser = dataSnapshot.getValue(User.class);
+                if (targetUser != null) {
+                    targetUser.numRatings += 1;
+                    targetUser.RateGain += rating;
+                    targetUser.rating = (double) targetUser.RateGain / targetUser.numRatings;
+                    targetUser.saveToFirebase(targetUserId, new SaveToFirebaseCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d("User", "User rated successfully");
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            Log.e("User", "Failed to rate user", e);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("User", "Failed to rate user", databaseError.toException());
             }
         });
     }
