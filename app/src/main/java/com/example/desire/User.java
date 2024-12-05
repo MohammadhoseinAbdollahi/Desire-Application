@@ -27,6 +27,7 @@ public class User {
     public String profileImageUrl;
     public int RateGain;
     public int RateGive;
+    public double desiredrate;
     public List<String> samedesire;
     public List<String> blackdesire;
     public List<String> posts;
@@ -48,6 +49,7 @@ public class User {
         this.profileImageUrl = "";
         this.RateGain = 0;
         this.RateGive = 0;
+        this.desiredrate = 3.5;
         this.samedesire = new ArrayList<>();
         this.samedesire.add("");
         this.blackdesire = new ArrayList<>();
@@ -92,6 +94,7 @@ public class User {
         userValues.put("profileImageUrl", profileImageUrl);
         userValues.put("RateGain", RateGain);
         userValues.put("RateGive", RateGive);
+        userValues.put("desiredrate", desiredrate);
         userValues.put("samedesire", samedesire);
         userValues.put("blackdesire", blackdesire);
         userValues.put("desires", posts);
