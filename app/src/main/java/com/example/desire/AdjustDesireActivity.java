@@ -5,8 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +32,9 @@ public class AdjustDesireActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private String userId;
     private boolean isSameDesireTabActive = true;  // Track active tab
+    private SeekBar rateBar;
+    private TextView rateTextView;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +47,13 @@ public class AdjustDesireActivity extends AppCompatActivity {
         userListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         userListRecyclerView.setAdapter(userListAdapter);
 
+        rateBar = findViewById(R.id.rateBar);
+        rateTextView = findViewById(R.id.rateTextView);
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        loadCurrentUser();
 
         // Load users from SameDesire by default
         loadUsersFromSameDesire();
@@ -54,6 +61,57 @@ public class AdjustDesireActivity extends AppCompatActivity {
         // Handle tab clicks (Same Desire and Blacklist)
         findViewById(R.id.tabSameDesire).setOnClickListener(v -> loadUsersFromSameDesire());
         findViewById(R.id.tabBlacklist).setOnClickListener(v -> loadUsersFromBlacklist());
+
+        // Handle SeekBar changes
+        rateBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                double rate = progress / 10.0;
+                rateTextView.setText("Rate: " + rate);
+                if (currentUser != null) {
+                    currentUser.desiredrate = rate;
+                    currentUser.saveToFirebase(userId, new User.SaveToFirebaseCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(AdjustDesireActivity.this, "Desired rate updated", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            Toast.makeText(AdjustDesireActivity.this, "Failed to update desired rate", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Do nothing
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Do nothing
+            }
+        });
+    }
+
+    private void loadCurrentUser() {
+        mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                currentUser = dataSnapshot.getValue(User.class);
+                if (currentUser != null) {
+                    rateBar.setProgress((int) (currentUser.desiredrate * 10));
+                    rateTextView.setText("Rate: " + currentUser.desiredrate);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(AdjustDesireActivity.this, "Failed to load current user", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadUsersFromSameDesire() {
