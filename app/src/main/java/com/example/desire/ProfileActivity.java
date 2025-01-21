@@ -78,6 +78,8 @@ public class ProfileActivity extends AppCompatActivity {
             if (!isFinishing()) {
                 Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
                 startActivity(intent);
+                // Apply fade transition
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
     }

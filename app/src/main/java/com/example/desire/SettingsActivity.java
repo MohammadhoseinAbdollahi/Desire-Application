@@ -23,9 +23,13 @@ public class SettingsActivity extends AppCompatActivity {
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onBackPressed();
+                Intent intent = new Intent(SettingsActivity.this, ProfileActivity.class);
+                startActivity(intent);
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                finish(); // Close the current activity
             }
         });
+
 
         findViewById(R.id.button_logout).setOnClickListener(new View.OnClickListener() {
             @Override
