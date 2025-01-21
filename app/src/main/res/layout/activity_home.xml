@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -11,6 +12,7 @@
         android:id="@+id/homeHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:text="Home"
         android:textAlignment="textStart"
@@ -23,44 +25,45 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Add a Desire Button -->
-    <Button
-        android:id="@+id/addDesireButton"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="25dp"
-        android:layout_marginEnd="8dp"
-        android:layout_weight="1"
-        android:text="Add a Desire!"
-        android:textSize="18sp"
-        android:background="@drawable/button_rounded_pink"
-        android:textColor="@android:color/black"
-        app:layout_constraintTop_toBottomOf="@+id/homeHeader"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/nearbyButton"
-        android:layout_marginBottom="16dp"
-        android:elevation="4dp"
-        android:clickable="true"/>
 
     <!-- Nearby Button -->
-    <Button
-        android:id="@+id/nearbyButton"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="25dp"
-        android:layout_marginStart="8dp"
-        android:layout_weight="1"
-        android:text="Nearby!"
-        android:textSize="18sp"
-        android:background="@drawable/button_rounded_pink"
-        android:textColor="@android:color/black"
-        app:layout_constraintTop_toBottomOf="@+id/homeHeader"
-        app:layout_constraintStart_toEndOf="@+id/addDesireButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"
-        android:elevation="4dp"
-        android:clickable="true"/>
 
     <!-- SameDesires Section -->
+
+    <Button
+        android:id="@+id/addDesireButton"
+        android:layout_width="171dp"
+        android:layout_height="71dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/button_rounded_pink"
+        android:clickable="true"
+        android:elevation="4dp"
+        android:text="Add a Desire!"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/nearbyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/homeHeader" />
+
+    <Button
+        android:id="@+id/nearbyButton"
+        android:layout_width="171dp"
+        android:layout_height="71dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="24dp"
+        android:layout_weight="1"
+        android:background="@drawable/button_rounded_pink"
+        android:clickable="true"
+        android:elevation="4dp"
+        android:text="Nearby!"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/addDesireButton"
+        app:layout_constraintTop_toBottomOf="@+id/homeHeader" />
+
     <LinearLayout
         android:id="@+id/sameDesiresSection"
         android:layout_width="wrap_content"
@@ -105,18 +108,20 @@
     </LinearLayout>
 
     <!-- Desire Items RecyclerView -->
+
+    <!-- Username -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/desireScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="358dp"
+        android:layout_height="199dp"
+        android:layout_marginTop="40dp"
         android:scrollbars="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.49"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sameDesiresSection" />
 
-    <!-- Username -->
     <TextView
         android:id="@+id/exploreusername"
         android:layout_width="wrap_content"
@@ -150,13 +155,14 @@
 
     <!-- Bottom Navigation -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent">
+
         <include
             android:id="@+id/bottom_navigation"
             layout="@layout/bottom_navigation" />
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

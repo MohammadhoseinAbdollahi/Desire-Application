@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class BottomNavigationBar {
 
     private Context context;
@@ -28,6 +30,8 @@ public class BottomNavigationBar {
                 Intent intent = new Intent(context, ProfileActivity.class);
                 intent.putExtra("userId", userId);
                 context.startActivity(intent);
+                // Apply fade transition
+                ((AppCompatActivity) context).overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
 
@@ -37,6 +41,8 @@ public class BottomNavigationBar {
                 Intent intent = new Intent(context, HomeActivity.class);
                 intent.putExtra("userId", userId);
                 context.startActivity(intent);
+                // Apply fade transition
+                ((AppCompatActivity) context).overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
 
@@ -46,6 +52,8 @@ public class BottomNavigationBar {
                 Intent intent = new Intent(context, ExploreActivity.class);
                 intent.putExtra("userId", userId);
                 context.startActivity(intent);
+                // Apply fade transition
+                ((AppCompatActivity) context).overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
     }

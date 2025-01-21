@@ -59,6 +59,10 @@ public class HomeActivity extends AppCompatActivity {
             return;
         }
 
+        // Initialize BottomNavigationBar
+        View bottomNavigationView = findViewById(R.id.bottom_navigation);
+        new BottomNavigationBar(this, bottomNavigationView, userId);
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
         loadUserData();
 
