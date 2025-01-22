@@ -150,7 +150,7 @@ public class AddDesireActivity extends AppCompatActivity {
             expirationDate = "No Expiration";
         }
 
-        Toast.makeText(this, "Kind: " + kind + "\nExpiration Date: " + expirationDate, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Kind: " + kind + "\nUntil: " + expirationDate, Toast.LENGTH_SHORT).show();
     }
 
     private void uploadImageToFirebase(String location, String caption) {
