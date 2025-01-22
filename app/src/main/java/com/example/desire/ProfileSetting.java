@@ -48,6 +48,17 @@ public class ProfileSetting extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_setting);
 
+        ImageView backButton = findViewById(R.id.back_button);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileSetting.this, SettingsActivity.class);
+                startActivity(intent);
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                finish(); // Close the current activity
+            }
+        });
+
         profileImage = findViewById(R.id.profile_image);
         editUsername = findViewById(R.id.edit_username);
         editBio = findViewById(R.id.edit_bio);
@@ -85,7 +96,10 @@ public class ProfileSetting extends AppCompatActivity {
                     editUsername.setText(username);
                     editBio.setText(bio);
                     if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-                        Glide.with(ProfileSetting.this).load(profileImageUrl).into(profileImage);
+                        Glide.with(ProfileSetting.this)
+                                .load(profileImageUrl)
+                                .circleCrop() // Apply circular crop
+                                .into(profileImage);
                     } else {
                         profileImage.setImageResource(R.drawable.user); // Placeholder image
                     }
@@ -98,6 +112,7 @@ public class ProfileSetting extends AppCompatActivity {
             }
         });
     }
+
 
     private void openImageSelector() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
