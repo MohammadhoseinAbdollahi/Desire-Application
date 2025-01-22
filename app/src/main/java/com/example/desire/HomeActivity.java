@@ -75,6 +75,21 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
+        // Initialize Add Desire button
+        Button addDesireButton = findViewById(R.id.addDesireButton);
+        addDesireButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, AddDesireActivity.class);
+                startActivity(intent);
+
+                // Apply fade-out animation
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+        });
+
     }
 
     private void loadUserData() {
