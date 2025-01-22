@@ -137,6 +137,10 @@ public class ProfileSetting extends AppCompatActivity {
             return;
         }
 
+        // Disable the save button to prevent multiple clicks
+        Button saveButton = findViewById(R.id.save_button);
+        saveButton.setEnabled(false);
+
         // Save new profile picture if changed
         if (imageUri != null) {
             uploadProfileImage(newUsername, newBio);
@@ -160,14 +164,25 @@ public class ProfileSetting extends AppCompatActivity {
             userRef.child("profileImageUrl").setValue(imageUrl).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Toast.makeText(ProfileSetting.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                    finish(); // Close activity
+                    refreshActivity(); // Refresh the activity
                 } else {
                     Toast.makeText(ProfileSetting.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
             Toast.makeText(ProfileSetting.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-            finish(); // Close activity
+            refreshActivity(); // Refresh the activity
         }
+        saveButton.setEnabled(true);
+
     }
+
+    private void refreshActivity() {
+        Intent intent = getIntent(); // Get the intent that started this activity
+        finish(); // Finish the current activity
+        startActivity(intent); // Restart the activity
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out); // Apply fade transition
+    }
+
+
 }
