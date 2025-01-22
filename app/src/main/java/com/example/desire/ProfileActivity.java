@@ -97,7 +97,7 @@ public class ProfileActivity extends AppCompatActivity {
                     Double rating = dataSnapshot.child("rating").getValue(Double.class);
 
                     if (rateGain != null && numRatings != null && rating != null && !isDestroyed()) {
-                        gainedStarsTextView.setText(String.valueOf(rateGain));
+                        gainedStarsTextView.setText(String.valueOf(rating));
                         bioTextView.setText(bio);
                         profileNameTextView.setText(username);
                         updateStarRating(rating);
