@@ -50,6 +50,8 @@ public class AddDesireActivity extends AppCompatActivity {
     private double userRating;
     private String selectedKind;
     private String expirationDate;
+    private Button selectedButton = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,20 +79,17 @@ public class AddDesireActivity extends AppCompatActivity {
         setButtonVisibilityBasedOnRating();
 
         // Set up button listeners to set kind and calculate expiration date
-        buttonHalfDay.setOnClickListener(v -> setKindAndExpiration("Half Day", 0, 12));
-        buttonOneDay.setOnClickListener(v -> setKindAndExpiration("One Day", 1, 0));
-        buttonWeek.setOnClickListener(v -> setKindAndExpiration("One Week", 7, 0));
-        buttonOneMonth.setOnClickListener(v -> setKindAndExpiration("One Month", 30, 0));
-        buttonYear.setOnClickListener(v -> setKindAndExpiration("One Year", 365, 0));
-        buttonNoExpiration.setOnClickListener(v -> setKindAndExpiration("No Expiration", -1, 0));
+        setVisibilityButtonClickListeners();
 
         buttonPost.setOnClickListener(view -> {
             String location = editLocation.getText().toString();
             String caption = editCaption.getText().toString();
+            buttonPost.setEnabled(false);
 
             if (imageUri != null) {
                 uploadImageToFirebase(location, caption);
             } else {
+                buttonPost.setEnabled(true);
                 Toast.makeText(AddDesireActivity.this, "Please select an image", Toast.LENGTH_SHORT).show();
             }
         });
@@ -210,4 +209,51 @@ public class AddDesireActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void setVisibilityButtonClickListeners() {
+        View.OnClickListener visibilityClickListener = v -> {
+            Button clickedButton = (Button) v;
+
+            // Reset the previously selected button to pink
+            if (selectedButton != null) {
+                selectedButton.setBackgroundResource(R.drawable.button_pink_background); // Reset to pink background
+            }
+
+            // Update the selected button's appearance
+            clickedButton.setBackgroundResource(R.drawable.button_gray_background); // Change to gray background
+            selectedButton = clickedButton;
+
+            // Update the kind and expiration based on the selected button
+            switch (clickedButton.getId()) {
+                case R.id.button_half_day:
+                    setKindAndExpiration("Half Day", 0, 12);
+                    break;
+                case R.id.button_one_day:
+                    setKindAndExpiration("One Day", 1, 0);
+                    break;
+                case R.id.button_week:
+                    setKindAndExpiration("One Week", 7, 0);
+                    break;
+                case R.id.button_one_month:
+                    setKindAndExpiration("One Month", 30, 0);
+                    break;
+                case R.id.button_year:
+                    setKindAndExpiration("One Year", 365, 0);
+                    break;
+                case R.id.button_no_expiration:
+                    setKindAndExpiration("No Expiration", -1, 0);
+                    break;
+            }
+        };
+
+        // Assign the unified click listener to all buttons
+        buttonHalfDay.setOnClickListener(visibilityClickListener);
+        buttonOneDay.setOnClickListener(visibilityClickListener);
+        buttonWeek.setOnClickListener(visibilityClickListener);
+        buttonOneMonth.setOnClickListener(visibilityClickListener);
+        buttonYear.setOnClickListener(visibilityClickListener);
+        buttonNoExpiration.setOnClickListener(visibilityClickListener);
+    }
+
+
 }
