@@ -20,15 +20,12 @@ public class SignupActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
 
         TextView signupButtonTextView = findViewById(R.id.signupButtonTextView);
-        signupButtonTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView EmailSignupTextView = findViewById(R.id.emailsignup);
-                Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
-                String emailText = EmailSignupTextView.getText().toString();
-                intent.putExtra("emailText", emailText);
-                startActivity(intent);
-            }
+        signupButtonTextView.setOnClickListener(v -> {
+            TextView EmailSignupTextView = findViewById(R.id.emailsignup);
+            Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
+            String emailText = EmailSignupTextView.getText().toString();
+            intent.putExtra("emailText", emailText);
+            startActivity(intent);
         });
 
         TextView googleSignupTextView = findViewById(R.id.googleSignupTextView);
@@ -57,7 +54,6 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void performGoogleSignup() {
-        // Perform Google signup logic here
 
         Toast.makeText(SignupActivity.this, "Google signup is not implemented yet", Toast.LENGTH_SHORT).show();
     }

@@ -49,8 +49,10 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.profile_security).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SettingsActivity.this, "Profile Security Clicked", Toast.LENGTH_SHORT).show();
-                // Handle profile security logic here
+                Intent intent = new Intent(SettingsActivity.this, ChangePassword.class);
+                intent.putExtra("userId", userId);
+                startActivity(intent);
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
 
@@ -68,8 +70,10 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.adjust_your_desire).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(SettingsActivity.this, "My Followers and Following Clicked", Toast.LENGTH_SHORT).show();
-                // Handle followers and following logic here
+                Intent intent = new Intent(SettingsActivity.this, AdjustDesireActivity.class);
+                intent.putExtra("userId", userId);
+                startActivity(intent);
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
     }
