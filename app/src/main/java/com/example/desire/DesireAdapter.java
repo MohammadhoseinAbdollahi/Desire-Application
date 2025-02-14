@@ -23,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireViewHolder> {
 
@@ -36,7 +37,6 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
     public DesireAdapter(ArrayList<Post> postList) {
         this.postList = postList;
     }
-
 
     @NonNull
     @Override
@@ -58,13 +58,61 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         Glide.with(holder.itemView.getContext()).load(post.getImageUrl()).into(holder.myDesiresImage);
 
         // Show comments in a BottomSheetDialog when the profile image is clicked
-        holder.myDesiresImage.setOnClickListener(v -> openCommentsBottomSheet(post));
+        holder.myDesiresImage.setOnClickListener(v -> openCommentsBottomSheet(post, holder));
 
         // Long-click listener for deleting a post
         holder.itemView.setOnLongClickListener(v -> {
             confirmDeletePost(post, position);
             return true;
         });
+    }
+
+    private void openCommentsBottomSheet(Post post, DesireViewHolder holder) {
+        if (holder.itemView.getContext() == null) return; // Avoid crashes
+
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(holder.itemView.getContext());
+        View bottomSheetView = LayoutInflater.from(holder.itemView.getContext()).inflate(R.layout.layout_bottom_sheet_comments, null);
+
+        RecyclerView commentsRecyclerView = bottomSheetView.findViewById(R.id.commentsRecyclerView);
+        EditText inputComment = bottomSheetView.findViewById(R.id.inputComment);
+        Button submitComment = bottomSheetView.findViewById(R.id.submitComment);
+
+        // Set up RecyclerView
+        Comments commentsAdapter = new Comments();
+        commentsRecyclerView.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
+        commentsRecyclerView.setAdapter(commentsAdapter);
+
+        // Load comments
+        post.loadComments(new Post.CommentsLoadCallback() {
+            @Override
+            public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
+                Map<String, String> commentsMap = new HashMap<>();
+                for (Map.Entry<String, String> entry : comments) {
+                    commentsMap.put(entry.getKey(), entry.getValue());
+                }
+                commentsAdapter.setComments(commentsMap);
+                commentsAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(holder.itemView.getContext(), "Failed to load comments", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Submit comment
+        submitComment.setOnClickListener(v -> {
+            String newComment = inputComment.getText().toString().trim();
+            if (!newComment.isEmpty()) {
+                addCommentToPost(post, newComment, commentsAdapter);
+                inputComment.setText("");
+            } else {
+                Toast.makeText(holder.itemView.getContext(), "Please enter a comment", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.show();
     }
 
     @Override

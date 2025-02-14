@@ -28,6 +28,7 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
     public Comments(Map<String, String> comments) {
         this.commentsList = new ArrayList<>(comments.entrySet());
     }
+
     public Comments() {
         this.commentsList = new ArrayList<>();
     }
@@ -41,54 +42,55 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
-        Map.Entry<String, String> commentEntry = commentsList.get(position);
-        String userId = commentEntry.getKey();
-        String commentText = commentEntry.getValue();
+        if (position < commentsList.size()) {  // Avoid IndexOutOfBoundsException
+            Map.Entry<String, String> commentEntry = commentsList.get(position);
+            String userId = commentEntry.getKey();
+            String commentText = commentEntry.getValue();
 
-        // Set the comment text
-        holder.commentText.setText(commentText);
+            // Set the comment text
+            holder.commentText.setText(commentText);
 
-        // Fetch user information from Firebase and set the username and profile image
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    String username = dataSnapshot.child("username").getValue(String.class);
-                    String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
+            // Fetch user information from Firebase
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        String username = dataSnapshot.child("username").getValue(String.class);
+                        String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
 
-                    // Set username
-                    holder.commentUsername.setText(username);
+                        // Set username
+                        holder.commentUsername.setText(username != null ? username : "Unknown User");
 
-                    // Load profile image with Glide
-                    if (profileImageUrl != null) {
-                        Glide.with(holder.itemView.getContext()).load(profileImageUrl).into(holder.commentProfileImage);
-                    } else {
-                        holder.commentProfileImage.setImageResource(R.drawable.blacklogo); // Placeholder if image URL is null
+                        // Load profile image with Glide
+                        if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                            Glide.with(holder.itemView.getContext()).load(profileImageUrl).into(holder.commentProfileImage);
+                        } else {
+                            holder.commentProfileImage.setImageResource(R.drawable.blacklogo); // Default image
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(holder.itemView.getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(holder.itemView.getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     @Override
     public int getItemCount() {
-        return commentsList.size();
+        return commentsList != null ? commentsList.size() : 0;
     }
 
-    // Method to update the comments list and notify the adapter of changes
+    // Method to update the comments list and notify adapter
     public void setComments(Map<String, String> newComments) {
         this.commentsList = new ArrayList<>(newComments.entrySet());
         notifyDataSetChanged();
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
-
         public ImageView commentProfileImage;
         public TextView commentUsername;
         public TextView commentText;

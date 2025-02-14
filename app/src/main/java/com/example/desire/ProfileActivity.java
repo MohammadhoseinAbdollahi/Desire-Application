@@ -51,9 +51,7 @@ public class ProfileActivity extends AppCompatActivity {
                 findViewById(R.id.star5)
         };
 
-        View bottomNavigationView = findViewById(R.id.bottom_navigation);
-        new BottomNavigationBar(this, bottomNavigationView, userId);
-
+        // Get current user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             userId = currentUser.getUid();
@@ -64,47 +62,59 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
+        // Set up bottom navigation
+        View bottomNavigationView = findViewById(R.id.bottom_navigation);
+        new BottomNavigationBar(this, bottomNavigationView, userId);
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        // Load profile data
         fetchUserProfile();
+
+        // Set up RecyclerView
         desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireAdapter = new DesireAdapter(postList);
         desireRecyclerView.setAdapter(desireAdapter);
 
+        // Load user posts
         fetchUserPosts();
 
+        // Settings button
         ImageView settingIcon = findViewById(R.id.settingbutton);
         settingIcon.setOnClickListener(v -> {
             if (!isFinishing()) {
                 Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
                 startActivity(intent);
-                // Apply fade transition
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
     }
 
     private void fetchUserProfile() {
+        if (isDestroyed() || isFinishing()) return;
+
         mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && !isFinishing()) {
+                if (isDestroyed() || isFinishing()) return;
+
+                if (dataSnapshot.exists()) {
                     String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
                     String bio = dataSnapshot.child("bio").getValue(String.class);
                     String username = dataSnapshot.child("username").getValue(String.class);
-                    Integer rateGain = dataSnapshot.child("RateGain").getValue(Integer.class);
-                    Integer numRatings = dataSnapshot.child("numRatings").getValue(Integer.class);
                     Double rating = dataSnapshot.child("rating").getValue(Double.class);
 
-                    if (rateGain != null && numRatings != null && rating != null && !isDestroyed()) {
-                        gainedStarsTextView.setText(String.valueOf(rating));
-                        bioTextView.setText(bio);
-                        profileNameTextView.setText(username);
-                        updateStarRating(rating);
+                    profileNameTextView.setText(username != null ? username : "No Username");
+                    bioTextView.setText(bio != null ? bio : "No Bio Available");
+                    gainedStarsTextView.setText(rating != null ? String.valueOf(rating) : "0.0");
 
-                        if (profileImageUrl != null) {
-                            Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
-                        }
+                    updateStarRating(rating != null ? rating : 0.0);
+
+                    // Load Profile Image
+                    if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                        Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
+                    } else {
+                        profileImageView.setImageResource(R.drawable.blacklogo); // Default image
                     }
                 }
             }
@@ -119,24 +129,40 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void updateStarRating(double rating) {
-        int fullStars = (int) Math.round(rating);
+        if (isDestroyed() || isFinishing()) return;
+
+        int fullStars = (int) rating;
+        boolean hasHalfStar = (rating - fullStars) >= 0.5;
+
         for (int i = 0; i < stars.length; i++) {
-            stars[i].setImageResource(i < fullStars ? R.drawable.star_fill : R.drawable.star_empty);
+            if (i < fullStars) {
+                stars[i].setImageResource(R.drawable.star_fill);
+            } else if (i == fullStars && hasHalfStar) {
+                stars[i].setImageResource(R.drawable.star_half);
+            } else {
+                stars[i].setImageResource(R.drawable.star_empty);
+            }
         }
     }
 
     private void fetchUserPosts() {
+        if (isDestroyed() || isFinishing()) return;
+
         mDatabase.child("posts").orderByChild("userId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (isDestroyed() || isFinishing()) return;
+
                 postList.clear();
-                if (!isFinishing()) {
-                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                        Post post = postSnapshot.getValue(Post.class);
-                        if (post != null) {
-                            postList.add(post);
-                        }
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Post post = postSnapshot.getValue(Post.class);
+                    if (post != null) {
+                        postList.add(post);
                     }
+                }
+
+                // Update RecyclerView only if still active
+                if (!isDestroyed() && !isFinishing()) {
                     desireAdapter.notifyDataSetChanged();
                 }
             }

@@ -11,7 +11,6 @@
     android:background="@drawable/card_background"
     android:elevation="6dp">
 
-    <!-- Post Image with Rounded Corners -->
     <com.example.desire.RoundedImageView
         android:id="@+id/myDesiresImage"
         android:layout_width="190dp"
@@ -121,13 +120,18 @@
 
         <!-- Description Section -->
         <ScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:overScrollMode="ifContentScrolls">
 
             <TextView
                 android:id="@+id/desireDescription"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:maxLines="5"
+                android:ellipsize="end"
                 android:text="Sun VS Sunglasses."
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />

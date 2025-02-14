@@ -27,6 +27,8 @@ public class ChangePassword extends AppCompatActivity {
         buttonConfirm = findViewById(R.id.button_confirm);
 
         buttonConfirm.setOnClickListener(v -> validateAndChangePassword());
+        findViewById(R.id.back_button).setOnClickListener(v -> onBackPressed());
+
     }
 
     private void validateAndChangePassword() {
