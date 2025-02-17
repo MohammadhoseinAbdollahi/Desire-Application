@@ -113,12 +113,12 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/desireScrollView"
-        android:layout_width="358dp"
-        android:layout_height="199dp"
-        android:layout_marginTop="40dp"
+        android:layout_width="413dp"
+        android:layout_height="243dp"
+        android:layout_marginTop="16dp"
         android:scrollbars="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.49"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sameDesiresSection" />
 
@@ -141,7 +141,7 @@
         android:id="@+id/swipeForNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="64dp"
         android:layout_marginBottom="64dp"
         android:text="Swipe For Next"
         android:textAlignment="center"

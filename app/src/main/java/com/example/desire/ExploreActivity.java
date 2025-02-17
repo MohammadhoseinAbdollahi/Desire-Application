@@ -167,6 +167,7 @@ public class ExploreActivity extends AppCompatActivity {
             return new DesireViewHolder(view);
         }
 
+
         @Override
         public void onBindViewHolder(@NonNull DesireViewHolder holder, int position) {
             Post post = posts.get(position);

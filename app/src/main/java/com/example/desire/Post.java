@@ -225,7 +225,7 @@ public class Post {
                         comments.put(userId, commentText);
                     }
                 }
-                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet()));
+                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet())); // ✅ Send all comments
             }
 
             @Override
@@ -234,6 +234,7 @@ public class Post {
             }
         });
     }
+
 
     public interface CommentsLoadCallback {
         void onCommentsLoaded(List<Map.Entry<String, String>> comments);

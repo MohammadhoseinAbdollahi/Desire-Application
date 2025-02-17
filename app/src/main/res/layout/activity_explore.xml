@@ -131,8 +131,8 @@
     <!-- Desire Items RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/desireScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_width="413dp"
+        android:layout_height="243dp"
         android:layout_marginTop="16dp"
         android:scrollbars="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -160,7 +160,7 @@
         android:id="@+id/swipeForNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="64dp"
         android:layout_marginBottom="64dp"
         android:text="Swipe For Next"
         android:textAlignment="center"

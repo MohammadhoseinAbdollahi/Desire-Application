@@ -44,13 +44,13 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         if (position < commentsList.size()) {  // Avoid IndexOutOfBoundsException
             Map.Entry<String, String> commentEntry = commentsList.get(position);
-            String userId = commentEntry.getKey();
+            String userId = commentEntry.getKey(); // Get user ID of the commenter
             String commentText = commentEntry.getValue();
 
-            // Set the comment text
+            // ✅ Set the comment text
             holder.commentText.setText(commentText);
 
-            // Fetch user information from Firebase
+            // ✅ Fetch username and profile image from Firebase
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -59,21 +59,31 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
                         String username = dataSnapshot.child("username").getValue(String.class);
                         String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
 
-                        // Set username
-                        holder.commentUsername.setText(username != null ? username : "Unknown User");
+                        // ✅ Set username (fallback to default if null)
+                        if (username != null) {
+                            holder.commentUsername.setText(username);
+                        } else {
+                            holder.commentUsername.setText("Unknown User");
+                        }
 
-                        // Load profile image with Glide
+                        // ✅ Load profile image using Glide (fallback to default image)
                         if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                             Glide.with(holder.itemView.getContext()).load(profileImageUrl).into(holder.commentProfileImage);
                         } else {
                             holder.commentProfileImage.setImageResource(R.drawable.blacklogo); // Default image
                         }
+                    } else {
+                        // ✅ User data not found, fallback to defaults
+                        holder.commentUsername.setText("Unknown User");
+                        holder.commentProfileImage.setImageResource(R.drawable.blacklogo);
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(holder.itemView.getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
+                    // ✅ If Firebase fails, use defaults
+                    holder.commentUsername.setText("Unknown User");
+                    holder.commentProfileImage.setImageResource(R.drawable.blacklogo);
                 }
             });
         }
@@ -84,9 +94,14 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
         return commentsList != null ? commentsList.size() : 0;
     }
 
-    // Method to update the comments list and notify adapter
     public void setComments(Map<String, String> newComments) {
-        this.commentsList = new ArrayList<>(newComments.entrySet());
+        this.commentsList.clear();
+        this.commentsList.addAll(newComments.entrySet());
+        notifyDataSetChanged();
+    }
+
+    public void clearComments() {
+        this.commentsList.clear();
         notifyDataSetChanged();
     }
 

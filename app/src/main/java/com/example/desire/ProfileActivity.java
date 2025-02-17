@@ -148,31 +148,67 @@ public class ProfileActivity extends AppCompatActivity {
     private void fetchUserPosts() {
         if (isDestroyed() || isFinishing()) return;
 
-        mDatabase.child("posts").orderByChild("userId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+        mDatabase.child("posts").orderByChild("userId").equalTo(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        postList.clear();
+                        for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                            Post post = postSnapshot.getValue(Post.class);
+                            if (post != null) {
+                                // Fetch actual username from Firebase instead of using @username
+                                fetchUsername(post, new UsernameCallback() {
+                                    @Override
+                                    public void onUsernameLoaded(String username) {
+                                        post.setUsername(username);
+                                        postList.add(post);
+                                        desireAdapter.notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Toast.makeText(ProfileActivity.this, "Failed to load username", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        if (!isFinishing()) {
+                            Toast.makeText(ProfileActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+    private void fetchUsername(Post post, UsernameCallback callback) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(post.getUserId());
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (isDestroyed() || isFinishing()) return;
-
-                postList.clear();
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    Post post = postSnapshot.getValue(Post.class);
-                    if (post != null) {
-                        postList.add(post);
+                if (dataSnapshot.exists()) {
+                    String username = dataSnapshot.child("username").getValue(String.class);
+                    if (username != null && !username.isEmpty()) {
+                        callback.onUsernameLoaded(username);
+                    } else {
+                        callback.onUsernameLoaded("Unknown User");
                     }
-                }
-
-                // Update RecyclerView only if still active
-                if (!isDestroyed() && !isFinishing()) {
-                    desireAdapter.notifyDataSetChanged();
+                } else {
+                    callback.onUsernameLoaded("Unknown User");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                if (!isFinishing()) {
-                    Toast.makeText(ProfileActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
-                }
+                callback.onError(databaseError.toException());
             }
         });
     }
+    public interface UsernameCallback {
+        void onUsernameLoaded(String username);
+        void onError(Exception e);
+    }
+
+
 }
