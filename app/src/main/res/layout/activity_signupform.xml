@@ -19,6 +19,7 @@
             android:textColor="#000000"
             android:layout_marginBottom="32dp"/>
 
+        <!-- Name -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -38,6 +39,7 @@
             android:layout_marginBottom="16dp"
             android:textSize="16sp" />
 
+        <!-- Username -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,6 +59,7 @@
             android:layout_marginBottom="16dp"
             android:textSize="16sp" />
 
+        <!-- Birthday -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,13 +72,14 @@
             android:id="@+id/et_birthday"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="1999/12/06"
+            android:hint="YYYY/MM/DD"
             android:inputType="date"
             android:background="@drawable/edit_text_background"
             android:padding="16dp"
             android:layout_marginBottom="16dp"
             android:textSize="16sp" />
 
+        <!-- Password -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -92,9 +96,11 @@
             android:inputType="textPassword"
             android:background="@drawable/edit_text_background"
             android:padding="16dp"
-            android:layout_marginBottom="16dp"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:drawableEnd="@drawable/ic_eye_closed"
+            android:drawablePadding="8dp"/>
 
+        <!-- Confirm Password -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -111,9 +117,11 @@
             android:inputType="textPassword"
             android:background="@drawable/edit_text_background"
             android:padding="16dp"
-            android:layout_marginBottom="16dp"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:drawableEnd="@drawable/ic_eye_closed"
+            android:drawablePadding="8dp"/>
 
+        <!-- Terms and Conditions -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -128,14 +136,18 @@
                 android:buttonTint="#000000" />
 
             <TextView
+                android:id="@+id/tv_terms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="I agree to Terms and Service"
                 android:textColor="#808080"
                 android:textSize="14sp"
-                android:layout_marginStart="8dp" />
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true"/>
         </LinearLayout>
 
+        <!-- Continue Button -->
         <Button
             android:id="@+id/btn_continue"
             android:layout_width="match_parent"
@@ -146,5 +158,6 @@
             android:textAllCaps="false"
             android:textSize="16sp"
             android:padding="16dp" />
+
     </LinearLayout>
 </ScrollView>

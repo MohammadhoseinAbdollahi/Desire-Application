@@ -8,6 +8,8 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,22 +21,19 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        TextView signupButtonTextView = findViewById(R.id.signupButtonTextView);
-        signupButtonTextView.setOnClickListener(v -> {
-            TextView EmailSignupTextView = findViewById(R.id.emailsignup);
+        LinearLayout signupButtonLayout = findViewById(R.id.signupButtonLayout);
+        EditText emailSignupEditText = findViewById(R.id.emailsignup);
+
+        signupButtonLayout.setOnClickListener(v -> {
+            String emailText = emailSignupEditText.getText().toString().trim();
             Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
-            String emailText = EmailSignupTextView.getText().toString();
             intent.putExtra("emailText", emailText);
             startActivity(intent);
         });
 
         TextView googleSignupTextView = findViewById(R.id.googleSignupTextView);
-        googleSignupTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                performGoogleSignup();
-            }
-        });
+        googleSignupTextView.setOnClickListener(v -> performGoogleSignup());
+
         TextView termsAndConditionsTextView = findViewById(R.id.termsAndConditionsTextView);
         String fullText = "By clicking continue, you agree to our Terms of Service and Privacy Policy";
 

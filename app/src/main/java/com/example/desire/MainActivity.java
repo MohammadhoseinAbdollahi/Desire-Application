@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(MainActivity.this, "Failed to check post expirations", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Failed to check post expirations", Toast.LENGTH_SHORT).show();
                 // Proceed with login status check regardless
                 checkLoginStatus();
             }

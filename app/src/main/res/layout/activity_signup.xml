@@ -89,7 +89,9 @@
                 android:background="@drawable/rounded_button"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:paddingVertical="15dp">
+                android:paddingVertical="15dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/signupButtonTextView"
@@ -98,7 +100,6 @@
                     android:text="Sign up with email"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp" />
-
             </LinearLayout>
 
             <LinearLayout
