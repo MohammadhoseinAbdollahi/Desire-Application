@@ -58,6 +58,7 @@ Desire - A Social App with Profile-Based Visibility: "Desire" is a social networ
    ```bash
    cd Desire-Application
    ```
+3. Copy your Json Google-service file in app folder
 
 ## Contributing
 
