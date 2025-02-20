@@ -117,7 +117,7 @@ public class HomeActivity extends AppCompatActivity {
                 allPosts.clear();
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Post post = postSnapshot.getValue(Post.class);
-                    if (post != null && post.isVisibility() && !currentUser.rateddesire.contains(post.getPostId())) {
+                    if (post != null && post.isVisibility() && !currentUser.rateddesire.contains(post.getPostId()) && !currentUser.blackdesire.contains(post.getUserId())) {
                         allPosts.add(post);
                     }
                 }

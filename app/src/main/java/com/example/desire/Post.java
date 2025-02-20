@@ -7,7 +7,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -95,7 +94,6 @@ public class Post {
     }
 
     // Existing getters and setters for other attributes
-
     public String getUserId() {
         return userId;
     }
@@ -208,6 +206,7 @@ public class Post {
         this.endDate = endDate;
     }
 
+    // Method to load comments from Firebase and update the commentsCount attribute
     public void loadComments(CommentsLoadCallback callback) {
         DatabaseReference commentsRef = FirebaseDatabase.getInstance().getReference("posts").child(postId).child("comments");
 
@@ -225,7 +224,10 @@ public class Post {
                         comments.put(userId, commentText);
                     }
                 }
-                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet())); // ✅ Send all comments
+                // Update commentsCount in Firebase
+                DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(postId);
+                postRef.child("commentsCount").setValue(comments.size());
+                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet())); // Send all comments
             }
 
             @Override
@@ -235,10 +237,8 @@ public class Post {
         });
     }
 
-
     public interface CommentsLoadCallback {
         void onCommentsLoaded(List<Map.Entry<String, String>> comments);
-
         void onError(Exception e);
     }
 

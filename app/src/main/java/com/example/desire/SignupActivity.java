@@ -26,9 +26,13 @@ public class SignupActivity extends AppCompatActivity {
 
         signupButtonLayout.setOnClickListener(v -> {
             String emailText = emailSignupEditText.getText().toString().trim();
-            Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
-            intent.putExtra("emailText", emailText);
-            startActivity(intent);
+            if (TextUtils.isEmpty(emailText) || !android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches()) {
+                Toast.makeText(SignupActivity.this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(SignupActivity.this, SignupFormActivity.class);
+                intent.putExtra("emailText", emailText);
+                startActivity(intent);
+            }
         });
 
         TextView googleSignupTextView = findViewById(R.id.googleSignupTextView);

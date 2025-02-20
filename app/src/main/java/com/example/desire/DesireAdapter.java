@@ -17,10 +17,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -60,12 +61,10 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
 
         Glide.with(holder.itemView.getContext()).load(post.getImageUrl()).into(holder.myDesiresImage);
 
-        // ✅ Display actual username instead of "@username"
+        // Display actual username instead of "@username"
         holder.username.setText(post.getUsername() != null ? post.getUsername() : "Unknown User");
 
-
-
-    // ✅ **Double Click to Open Comments**
+        // Double Click to Open Comments
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             private long lastClickTime = 0;
 
@@ -79,19 +78,19 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
             }
         });
 
-        // ✅ **Long Click to Delete (Only for Post Owner)**
+        // Long Click to Delete (Only for Post Owner)
         holder.itemView.setOnLongClickListener(v -> {
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            if (auth.getCurrentUser() != null && auth.getCurrentUser().getUid().equals(post.getUserId())) {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null &&
+                    FirebaseAuth.getInstance().getCurrentUser().getUid().equals(post.getUserId())) {
                 confirmDeletePost(post, position);
             } else {
-                Toast.makeText(holder.itemView.getContext(), "You can only delete your own posts!", Toast.LENGTH_SHORT).show();
+                if (context != null) {
+                    Toast.makeText(context, "You can only delete your own posts!", Toast.LENGTH_SHORT).show();
+                }
             }
             return true;
         });
     }
-
-
 
     @Override
     public int getItemCount() {
@@ -99,53 +98,61 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
     }
 
     private void openCommentsBottomSheet(Post post, DesireViewHolder holder) {
-        if (holder.itemView.getContext() == null) return; // Avoid crashes
+        Context baseContext = holder.itemView.getContext();
+        if (baseContext == null) return; // Avoid crashes
 
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(holder.itemView.getContext());
-        View bottomSheetView = LayoutInflater.from(holder.itemView.getContext()).inflate(R.layout.layout_bottom_sheet_comments, null);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(baseContext);
+        View bottomSheetView = LayoutInflater.from(baseContext).inflate(R.layout.layout_bottom_sheet_comments, null);
 
         RecyclerView commentsRecyclerView = bottomSheetView.findViewById(R.id.commentsRecyclerView);
         EditText inputComment = bottomSheetView.findViewById(R.id.inputComment);
         Button submitComment = bottomSheetView.findViewById(R.id.submitComment);
 
-        // ✅ Set up RecyclerView
-        Comments commentsAdapter = new Comments();
-        commentsRecyclerView.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
+        // Set up RecyclerView using the new constructor with the post ID
+        Comments commentsAdapter = new Comments(post.getPostId(), new HashMap<>());
+        commentsRecyclerView.setLayoutManager(new LinearLayoutManager(baseContext));
         commentsRecyclerView.setAdapter(commentsAdapter);
 
-        // ✅ Load all comments
+        // Load all comments
         post.loadComments(new Post.CommentsLoadCallback() {
             @Override
             public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
-                if (commentsRecyclerView.getContext() == null) return; // Prevent null context errors
+                // Safely obtain a context for the Toast message
+                Context toastContext = (commentsRecyclerView.getContext() != null) ?
+                        commentsRecyclerView.getContext() : (context != null ? context : null);
+                if (toastContext == null) return;
 
-                // ✅ Create a Map to store comments correctly
+                // Create a Map to store comments correctly
                 Map<String, String> commentsMap = new HashMap<>();
                 for (Map.Entry<String, String> entry : comments) {
                     commentsMap.put(entry.getKey(), entry.getValue());
                 }
 
-                // ✅ Set all comments and update adapter
+                // Set all comments and update adapter
                 commentsAdapter.setComments(commentsMap);
                 commentsAdapter.notifyDataSetChanged(); // Ensure UI updates properly
 
-                Toast.makeText(commentsRecyclerView.getContext(), "Comments Loaded!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(toastContext, "Comments Loaded!", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(Exception e) {
-                Toast.makeText(holder.itemView.getContext(), "Failed to load comments", Toast.LENGTH_SHORT).show();
+                if (context != null) {
+                    Toast.makeText(context, "Failed to load comments", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
-        // ✅ Fix comment submission (append new comments instead of replacing)
+        // Fix comment submission (append new comments instead of replacing)
         submitComment.setOnClickListener(v -> {
             String newComment = inputComment.getText().toString().trim();
             if (!newComment.isEmpty()) {
-                addCommentToPost(post, newComment, commentsAdapter); // ✅ Append comment
-                inputComment.setText(""); // ✅ Clear input field
+                addCommentToPost(post, newComment, commentsAdapter); // Append comment
+                inputComment.setText(""); // Clear input field
             } else {
-                Toast.makeText(holder.itemView.getContext(), "Please enter a comment", Toast.LENGTH_SHORT).show();
+                if (context != null) {
+                    Toast.makeText(context, "Please enter a comment", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -153,13 +160,11 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         bottomSheetDialog.show();
     }
 
-
-
-
-
     private void addCommentToPost(Post post, String commentText, Comments commentsAdapter) {
         if (post.getPostId() == null) {
-            Toast.makeText(context, "Post ID is missing", Toast.LENGTH_SHORT).show();
+            if (context != null) {
+                Toast.makeText(context, "Post ID is missing", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
@@ -170,11 +175,13 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         if (userId == null) {
-            Toast.makeText(context, "User is not logged in", Toast.LENGTH_SHORT).show();
+            if (context != null) {
+                Toast.makeText(context, "User is not logged in", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
-        // ✅ **Push a new unique comment instead of replacing existing**
+        // Push a new unique comment
         String commentId = postRef.push().getKey();
         if (commentId != null) {
             postRef.child(commentId).setValue(commentText).addOnCompleteListener(task -> {
@@ -212,7 +219,6 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         }
     }
 
-
     private void confirmDeletePost(Post post, int position) {
         if (context == null) return; // Prevent null context issue
 
@@ -230,9 +236,13 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
             if (task.isSuccessful()) {
                 postList.remove(position);
                 notifyItemRemoved(position);
-                Toast.makeText(context, "Post deleted successfully", Toast.LENGTH_SHORT).show();
+                if (context != null) {
+                    Toast.makeText(context, "Post deleted successfully", Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(context, "Failed to delete post", Toast.LENGTH_SHORT).show();
+                if (context != null) {
+                    Toast.makeText(context, "Failed to delete post", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
