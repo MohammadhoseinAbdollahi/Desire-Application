@@ -32,12 +32,10 @@ public class Post {
     private String endDate;
     public Map<String, String> comments;
 
-    // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     public Post() {
         this.comments = null;
     }
 
-    // Constructor with parameters
     public Post(String userId, String postId, String imageUrl, double rating, int commentsCount, String location,
                 String date, String description, boolean isRated, String postDate, boolean visibility, String username,
                 double totalRating, int sameDesireCount, int numberOfRatings, String kind, String endDate) {
@@ -61,7 +59,6 @@ public class Post {
         this.comments = null;
     }
 
-    // Getters and Setters for new attributes
     public void addComment(String userId, String commentText) {
         if (this.comments == null) {
             this.comments = new HashMap<>();
@@ -93,7 +90,6 @@ public class Post {
         this.numberOfRatings = numberOfRatings;
     }
 
-    // Existing getters and setters for other attributes
     public String getUserId() {
         return userId;
     }
@@ -206,7 +202,6 @@ public class Post {
         this.endDate = endDate;
     }
 
-    // Method to load comments from Firebase and update the commentsCount attribute
     public void loadComments(CommentsLoadCallback callback) {
         DatabaseReference commentsRef = FirebaseDatabase.getInstance().getReference("posts").child(postId).child("comments");
 
@@ -224,10 +219,9 @@ public class Post {
                         comments.put(userId, commentText);
                     }
                 }
-                // Update commentsCount in Firebase
                 DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(postId);
                 postRef.child("commentsCount").setValue(comments.size());
-                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet())); // Send all comments
+                callback.onCommentsLoaded(new ArrayList<>(comments.entrySet()));
             }
 
             @Override
@@ -243,16 +237,12 @@ public class Post {
     }
 
     public void ratePost(double newRating) {
-        // Increment the number of ratings
         this.numberOfRatings += 1;
 
-        // Update the total rating
         this.totalRating += newRating;
 
-        // Calculate the new average rating
         this.rating = this.totalRating / this.numberOfRatings;
 
-        // Update the post in the database
         DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(this.postId);
         postRef.setValue(this).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {

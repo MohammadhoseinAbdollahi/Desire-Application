@@ -244,11 +244,11 @@ public class ExploreActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 Toast.makeText(ExploreActivity.this, "Rated " + rating + " stars!", Toast.LENGTH_SHORT).show();
 
-                                // Update user's rated desires list in Firebase
+
                                 currentUser.rateddesire.add(post.getPostId());
                                 mDatabase.child("users").child(userId).child("rateddesire").setValue(currentUser.rateddesire);
 
-                                // Load next post if available
+
                                 if (desireList.size() < allPosts.size()) {
                                     desireList.add(allPosts.get(desireList.size()));
                                     desireAdapter.notifyDataSetChanged();

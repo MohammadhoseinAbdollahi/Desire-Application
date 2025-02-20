@@ -34,7 +34,6 @@ public class User {
     public List<String> rateddesire;
 
     public User() {
-        // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
     public User(String userId, String email, String name, String username, String birthday) {
@@ -55,9 +54,9 @@ public class User {
         this.blackdesire = new ArrayList<>();
         this.blackdesire.add("");
         this.posts = new ArrayList<>();
-        this.posts.add(""); // Add an empty value
+        this.posts.add("");
         this.rateddesire = new ArrayList<>();
-        this.rateddesire.add(""); // Add an empty value
+        this.rateddesire.add("");
     }
 
     public String getUsername() {

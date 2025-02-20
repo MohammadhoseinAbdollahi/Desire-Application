@@ -78,7 +78,7 @@ public class AddDesireActivity extends AppCompatActivity {
 
         setButtonVisibilityBasedOnRating();
 
-        // Set up button listeners to set kind and calculate expiration date
+
         setVisibilityButtonClickListeners();
 
         buttonPost.setOnClickListener(view -> {
@@ -106,7 +106,7 @@ public class AddDesireActivity extends AppCompatActivity {
                 Intent intent = new Intent(AddDesireActivity.this, HomeActivity.class);
                 startActivity(intent);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                finish(); // Close the current activity
+                finish();
             }
         });
 
@@ -149,7 +149,7 @@ public class AddDesireActivity extends AppCompatActivity {
     private void setKindAndExpiration(String kind, int days, int hours) {
         this.selectedKind = kind;
 
-        // Calculate the expiration date based on the current date, days, and hours
+
         if (days >= 0 || hours > 0) {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DAY_OF_YEAR, days);
@@ -214,16 +214,16 @@ public class AddDesireActivity extends AppCompatActivity {
         View.OnClickListener visibilityClickListener = v -> {
             Button clickedButton = (Button) v;
 
-            // Reset the previously selected button to pink
+
             if (selectedButton != null) {
-                selectedButton.setBackgroundResource(R.drawable.button_pink_background); // Reset to pink background
+                selectedButton.setBackgroundResource(R.drawable.button_pink_background);
             }
 
-            // Update the selected button's appearance
-            clickedButton.setBackgroundResource(R.drawable.button_gray_background); // Change to gray background
+
+            clickedButton.setBackgroundResource(R.drawable.button_gray_background);
             selectedButton = clickedButton;
 
-            // Update the kind and expiration based on the selected button
+
             switch (clickedButton.getId()) {
                 case R.id.button_half_day:
                     setKindAndExpiration("Half Day", 0, 12);
@@ -246,7 +246,7 @@ public class AddDesireActivity extends AppCompatActivity {
             }
         };
 
-        // Assign the unified click listener to all buttons
+
         buttonHalfDay.setOnClickListener(visibilityClickListener);
         buttonOneDay.setOnClickListener(visibilityClickListener);
         buttonWeek.setOnClickListener(visibilityClickListener);

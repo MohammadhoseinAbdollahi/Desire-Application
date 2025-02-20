@@ -10,7 +10,6 @@ public class UserInteraction {
     public static double averageRate;
 
     public UserInteraction() {
-        // Default constructor required for calls to DataSnapshot.getValue(UserInteraction.class)
     }
 
     public UserInteraction(String subUserId, int countRate, double totalRate) {

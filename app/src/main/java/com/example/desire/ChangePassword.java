@@ -50,10 +50,9 @@ public class ChangePassword extends AppCompatActivity {
         if (user != null && user.getEmail() != null) {
             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), oldPassword);
 
-            // Re-authenticate the user
             user.reauthenticate(credential).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    // Update password in Firebase
+
                     user.updatePassword(newPassword).addOnCompleteListener(task1 -> {
                         if (task1.isSuccessful()) {
                             Toast.makeText(ChangePassword.this, "Password changed successfully", Toast.LENGTH_SHORT).show();

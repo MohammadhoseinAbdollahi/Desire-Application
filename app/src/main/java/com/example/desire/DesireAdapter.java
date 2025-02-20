@@ -61,7 +61,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
 
         Glide.with(holder.itemView.getContext()).load(post.getImageUrl()).into(holder.myDesiresImage);
 
-        // Display actual username instead of "@username"
+
         holder.username.setText(post.getUsername() != null ? post.getUsername() : "Unknown User");
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -72,21 +72,20 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
                 String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                         ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                         : "";
-                // If the post belongs to the current user, use double-click detection
+
                 if (currentUserId.equals(post.getUserId())) {
                     long clickTime = System.currentTimeMillis();
-                    if (clickTime - lastClickTime < 300) { // Double click detected
+                    if (clickTime - lastClickTime < 300) {
                         openCommentsBottomSheet(post, holder);
                     }
                     lastClickTime = clickTime;
                 } else {
-                    // For posts from other users, open the comment section on a single click
                     openCommentsBottomSheet(post, holder);
                 }
             }
         });
 
-        // Long Click to Delete (Only for Post Owner)
+
         holder.itemView.setOnLongClickListener(v -> {
             if (FirebaseAuth.getInstance().getCurrentUser() != null &&
                     FirebaseAuth.getInstance().getCurrentUser().getUid().equals(post.getUserId())) {
@@ -107,7 +106,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
 
     public void openCommentsBottomSheet(Post post, DesireViewHolder holder) {
         Context baseContext = holder.itemView.getContext();
-        if (baseContext == null) return; // Avoid crashes
+        if (baseContext == null) return;
 
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(baseContext);
         View bottomSheetView = LayoutInflater.from(baseContext).inflate(R.layout.layout_bottom_sheet_comments, null);
@@ -116,29 +115,29 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         EditText inputComment = bottomSheetView.findViewById(R.id.inputComment);
         Button submitComment = bottomSheetView.findViewById(R.id.submitComment);
 
-        // Set up RecyclerView using the new constructor with the post ID
+
         Comments commentsAdapter = new Comments(post.getPostId(), new HashMap<>());
         commentsRecyclerView.setLayoutManager(new LinearLayoutManager(baseContext));
         commentsRecyclerView.setAdapter(commentsAdapter);
 
-        // Load all comments
+
         post.loadComments(new Post.CommentsLoadCallback() {
             @Override
             public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
-                // Safely obtain a context for the Toast message
+
                 Context toastContext = (commentsRecyclerView.getContext() != null) ?
                         commentsRecyclerView.getContext() : (context != null ? context : null);
                 if (toastContext == null) return;
 
-                // Create a Map to store comments correctly
+
                 Map<String, String> commentsMap = new HashMap<>();
                 for (Map.Entry<String, String> entry : comments) {
                     commentsMap.put(entry.getKey(), entry.getValue());
                 }
 
-                // Set all comments and update adapter
+
                 commentsAdapter.setComments(commentsMap);
-                commentsAdapter.notifyDataSetChanged(); // Ensure UI updates properly
+                commentsAdapter.notifyDataSetChanged();
 
                 Toast.makeText(toastContext, "Comments Loaded!", Toast.LENGTH_SHORT).show();
             }
@@ -151,12 +150,12 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
             }
         });
 
-        // Fix comment submission (append new comments instead of replacing)
+
         submitComment.setOnClickListener(v -> {
             String newComment = inputComment.getText().toString().trim();
             if (!newComment.isEmpty()) {
-                addCommentToPost(post, newComment, commentsAdapter); // Append comment
-                inputComment.setText(""); // Clear input field
+                addCommentToPost(post, newComment, commentsAdapter);
+                inputComment.setText("");
             } else {
                 if (context != null) {
                     Toast.makeText(context, "Please enter a comment", Toast.LENGTH_SHORT).show();
@@ -168,7 +167,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         bottomSheetDialog.show();
     }
 
-    // IMPORTANT CHANGE: Instead of generating a push key, we use the userId as the key.
+
     private void addCommentToPost(Post post, String commentText, Comments commentsAdapter) {
         if (post.getPostId() == null) {
             if (context != null) {
@@ -190,7 +189,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
             return;
         }
 
-        // Instead of using a generated key, use the userId so that the key in the database is the commenter’s ID.
+
         postRef.child(userId).setValue(commentText).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 post.loadComments(new Post.CommentsLoadCallback() {
@@ -226,7 +225,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
     }
 
     private void confirmDeletePost(Post post, int position) {
-        if (context == null) return; // Prevent null context issue
+        if (context == null) return;
 
         new android.app.AlertDialog.Builder(context)
                 .setTitle("Delete Post")

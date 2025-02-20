@@ -51,7 +51,6 @@ public class ProfileActivity extends AppCompatActivity {
                 findViewById(R.id.star5)
         };
 
-        // Get current user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             userId = currentUser.getUid();
@@ -62,24 +61,19 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Set up bottom navigation
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
         new BottomNavigationBar(this, bottomNavigationView, userId);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Load profile data
         fetchUserProfile();
 
-        // Set up RecyclerView
         desireRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         desireAdapter = new DesireAdapter(postList);
         desireRecyclerView.setAdapter(desireAdapter);
 
-        // Load user posts
         fetchUserPosts();
 
-        // Settings button
         ImageView settingIcon = findViewById(R.id.settingbutton);
         settingIcon.setOnClickListener(v -> {
             if (!isFinishing()) {
@@ -110,11 +104,10 @@ public class ProfileActivity extends AppCompatActivity {
 
                     updateStarRating(rating != null ? rating : 0.0);
 
-                    // Load Profile Image
                     if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                         Glide.with(ProfileActivity.this).load(profileImageUrl).into(profileImageView);
                     } else {
-                        profileImageView.setImageResource(R.drawable.blacklogo); // Default image
+                        profileImageView.setImageResource(R.drawable.blacklogo);
                     }
                 }
             }
@@ -156,7 +149,6 @@ public class ProfileActivity extends AppCompatActivity {
                         for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                             Post post = postSnapshot.getValue(Post.class);
                             if (post != null) {
-                                // Fetch actual username from Firebase instead of using @username
                                 fetchUsername(post, new UsernameCallback() {
                                     @Override
                                     public void onUsernameLoaded(String username) {

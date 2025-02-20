@@ -140,7 +140,7 @@ public class AdjustDesireActivity extends AppCompatActivity {
 
     private void loadUsers(String type) {
         userList.clear();
-        userListAdapter.notifyDataSetChanged(); // Ensures correct data display when switching tabs
+        userListAdapter.notifyDataSetChanged();
 
         mDatabase.child("users").child(userId).child(type).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

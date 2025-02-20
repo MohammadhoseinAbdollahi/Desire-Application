@@ -24,19 +24,19 @@ import java.util.Map;
 public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
 
     private List<Map.Entry<String, String>> commentsList;
-    private String postId; // Used to update the comments count attribute
+    private String postId;
 
-    // Existing constructor with comments map
+
     public Comments(Map<String, String> comments) {
         this.commentsList = new ArrayList<>(comments.entrySet());
     }
 
-    // Default constructor
+
     public Comments() {
         this.commentsList = new ArrayList<>();
     }
 
-    // New constructor to pass the post ID along with comments
+
     public Comments(String postId, Map<String, String> comments) {
         this.postId = postId;
         this.commentsList = new ArrayList<>(comments.entrySet());
@@ -52,15 +52,15 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
-        if (position < commentsList.size()) {  // Avoid IndexOutOfBoundsException
+        if (position < commentsList.size()) {
             Map.Entry<String, String> commentEntry = commentsList.get(position);
-            String userId = commentEntry.getKey(); // Get user ID of the commenter
+            String userId = commentEntry.getKey();
             String commentText = commentEntry.getValue();
 
-            // Set the comment text
+
             holder.commentText.setText(commentText);
 
-            // Fetch username and profile image from Firebase using the user ID
+
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -69,21 +69,21 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
                         String username = dataSnapshot.child("username").getValue(String.class);
                         String profileImageUrl = dataSnapshot.child("profileImageUrl").getValue(String.class);
 
-                        // Set username (fallback to default if null)
+
                         if (username != null) {
                             holder.commentUsername.setText(username);
                         } else {
                             holder.commentUsername.setText("Unknown User");
                         }
 
-                        // Load profile image using Glide (fallback to default image)
+
                         if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                             Glide.with(holder.itemView.getContext()).load(profileImageUrl).into(holder.commentProfileImage);
                         } else {
                             holder.commentProfileImage.setImageResource(R.drawable.blacklogo);
                         }
                     } else {
-                        // User data not found – fallback to defaults
+
                         holder.commentUsername.setText("Unknown User");
                         holder.commentProfileImage.setImageResource(R.drawable.blacklogo);
                     }
@@ -91,7 +91,7 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    // On error, use default values
+
                     holder.commentUsername.setText("Unknown User");
                     holder.commentProfileImage.setImageResource(R.drawable.blacklogo);
                 }
@@ -117,7 +117,6 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
         updateCommentsCount();
     }
 
-    // Helper method to update the "commentsCount" attribute in the post node in Firebase
     private void updateCommentsCount() {
         if (postId != null && !postId.isEmpty()) {
             DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(postId);

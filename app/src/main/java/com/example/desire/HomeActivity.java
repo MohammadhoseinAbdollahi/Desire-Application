@@ -59,14 +59,14 @@ public class HomeActivity extends AppCompatActivity {
             return;
         }
 
-        // Initialize BottomNavigationBar
+
         View bottomNavigationView = findViewById(R.id.bottom_navigation);
         new BottomNavigationBar(this, bottomNavigationView, userId);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         loadUserData();
 
-        // Set click listener for the Nearby button
+
         Button nearbyButton = findViewById(R.id.nearbyButton);
         nearbyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,7 +77,7 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
-        // Initialize Add Desire button
+
         Button addDesireButton = findViewById(R.id.addDesireButton);
         addDesireButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +85,7 @@ public class HomeActivity extends AppCompatActivity {
                 Intent intent = new Intent(HomeActivity.this, AddDesireActivity.class);
                 startActivity(intent);
 
-                // Apply fade-out animation
+
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
         });
@@ -225,11 +225,11 @@ public class HomeActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 Toast.makeText(HomeActivity.this, "Rated " + rating + " stars!", Toast.LENGTH_SHORT).show();
 
-                                // Update user's rated desires list in Firebase
+
                                 currentUser.rateddesire.add(post.getPostId());
                                 mDatabase.child("users").child(userId).child("rateddesire").setValue(currentUser.rateddesire);
 
-                                // Load next post if available
+
                                 if (desireList.size() < allPosts.size()) {
                                     desireList.add(allPosts.get(desireList.size()));
                                     desireAdapter.notifyDataSetChanged();

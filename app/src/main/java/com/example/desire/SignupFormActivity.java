@@ -50,9 +50,7 @@ public class SignupFormActivity extends AppCompatActivity {
 
         emailText = getIntent().getStringExtra("emailText");
 
-        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-        // Initialize Firebase Database
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
         etName = findViewById(R.id.et_name);
@@ -64,17 +62,13 @@ public class SignupFormActivity extends AppCompatActivity {
         TextView tvTerms = findViewById(R.id.tv_terms);
         btnContinue = findViewById(R.id.btn_continue);
 
-        // Auto-format birthday input
         etBirthday.addTextChangedListener(new BirthdayTextWatcher(etBirthday));
 
-        // Toggle checkbox when clicking "I agree to Terms and Service"
         tvTerms.setOnClickListener(v -> cbTerms.setChecked(!cbTerms.isChecked()));
 
-        // Toggle password visibility
         etPassword.setOnTouchListener((v, event) -> handlePasswordToggle(event, etPassword));
         etConfirmPassword.setOnTouchListener((v, event) -> handlePasswordToggle(event, etConfirmPassword));
 
-        // Continue button click listener
         btnContinue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,7 +94,7 @@ public class SignupFormActivity extends AppCompatActivity {
         int icon = isPasswordVisible ? R.drawable.ic_eye_open : R.drawable.ic_eye_closed;
 
         Drawable drawable = getResources().getDrawable(icon);
-        drawable.setBounds(0, 0, 60, 60); // Adjust icon size (width, height in pixels)
+        drawable.setBounds(0, 0, 60, 60);
 
         editText.setCompoundDrawables(null, null, drawable, null);
         editText.setInputType(isPasswordVisible ?
@@ -129,7 +123,7 @@ public class SignupFormActivity extends AppCompatActivity {
             if (isEditing) return;
             isEditing = true;
 
-            String clean = s.toString().replaceAll("[^\\d]", ""); // Remove non-digit characters
+            String clean = s.toString().replaceAll("[^\\d]", "");
             String formatted = "";
 
             if (clean.length() > 4) {
@@ -144,7 +138,7 @@ public class SignupFormActivity extends AppCompatActivity {
             }
 
             editText.setText(formatted);
-            editText.setSelection(formatted.length()); // Keep cursor at correct position
+            editText.setSelection(formatted.length());
             isEditing = false;
         }
     }
@@ -158,7 +152,6 @@ public class SignupFormActivity extends AppCompatActivity {
         String confirmPassword = etConfirmPassword.getText().toString().trim();
         boolean termsChecked = cbTerms.isChecked();
 
-        // Validate input fields
         if (name.isEmpty()) {
             etName.setError("Name is required");
             etName.requestFocus();
@@ -200,23 +193,17 @@ public class SignupFormActivity extends AppCompatActivity {
             return;
         }
 
-        // Create a new user in Firebase Authentication
         mAuth.createUserWithEmailAndPassword(emailText, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign up success
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
                             if (firebaseUser != null) {
-                                // Get the user ID from Firebase Authentication
                                 String userId = firebaseUser.getUid();
 
-                                // Create User object
                                 User user = new User(userId, emailText, name, username, birthday);
 
-                                // Save the User object to Firebase Realtime Database
-                                // Assuming saveToFirebase expects a userId and a callback
                                 user.saveToFirebase(userId, new User.SaveToFirebaseCallback() {
                                     @Override
                                     public void onSuccess() {
@@ -229,11 +216,9 @@ public class SignupFormActivity extends AppCompatActivity {
 
                                     @Override
                                     public void onFailure(Exception e) {
-                                        // Sign up failed
                                         Log.e(SignupFormActivity.class.getSimpleName(), "Sign up failed: " + task.getException().getMessage());
                                         if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                             Toast.makeText(SignupFormActivity.this, "The email address is already in use by another account.", Toast.LENGTH_SHORT).show();
-                                            // Redirect to login activity if needed
                                             Intent intent = new Intent(SignupFormActivity.this, LoginActivity.class);
                                             intent.putExtra("emailText", emailText);
                                             startActivity(intent);
@@ -250,11 +235,9 @@ public class SignupFormActivity extends AppCompatActivity {
                                 finish();
                             }
                         } else {
-                            // Sign up failed
                             Log.e(SignupFormActivity.class.getSimpleName(), "Sign up failed: " + task.getException().getMessage());
                             if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                 Toast.makeText(SignupFormActivity.this, "The email address is already in use by another account.", Toast.LENGTH_SHORT).show();
-                                // Redirect to login activity if needed
                                 Intent intent = new Intent(SignupFormActivity.this, LoginActivity.class);
                                 intent.putExtra("emailText", emailText);
                                 startActivity(intent);

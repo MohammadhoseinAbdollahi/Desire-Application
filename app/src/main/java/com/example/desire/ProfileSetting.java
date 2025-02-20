@@ -55,7 +55,7 @@ public class ProfileSetting extends AppCompatActivity {
                 Intent intent = new Intent(ProfileSetting.this, SettingsActivity.class);
                 startActivity(intent);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                finish(); // Close the current activity
+                finish();
             }
         });
 
@@ -65,7 +65,6 @@ public class ProfileSetting extends AppCompatActivity {
         changePhotoButton = findViewById(R.id.change_photo_button);
         saveButton = findViewById(R.id.save_button);
 
-        // Initialize Firebase references
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             userId = currentUser.getUid();
@@ -73,13 +72,10 @@ public class ProfileSetting extends AppCompatActivity {
             storageRef = FirebaseStorage.getInstance().getReference("profile_images").child(userId + ".jpg");
         }
 
-        // Load user data
         loadUserData();
 
-        // Change photo button click listener
         changePhotoButton.setOnClickListener(view -> openImageSelector());
 
-        // Save button click listener
         saveButton.setOnClickListener(view -> saveProfileChanges());
     }
 
@@ -92,16 +88,15 @@ public class ProfileSetting extends AppCompatActivity {
                     String bio = snapshot.child("bio").getValue(String.class);
                     String profileImageUrl = snapshot.child("profileImageUrl").getValue(String.class);
 
-                    // Set user data
                     editUsername.setText(username);
                     editBio.setText(bio);
                     if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                         Glide.with(ProfileSetting.this)
                                 .load(profileImageUrl)
-                                .circleCrop() // Apply circular crop
+                                .circleCrop()
                                 .into(profileImage);
                     } else {
-                        profileImage.setImageResource(R.drawable.user); // Placeholder image
+                        profileImage.setImageResource(R.drawable.user);
                     }
                 }
             }
@@ -137,11 +132,9 @@ public class ProfileSetting extends AppCompatActivity {
             return;
         }
 
-        // Disable the save button to prevent multiple clicks
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setEnabled(false);
 
-        // Save new profile picture if changed
         if (imageUri != null) {
             uploadProfileImage(newUsername, newBio);
         } else {
@@ -164,24 +157,24 @@ public class ProfileSetting extends AppCompatActivity {
             userRef.child("profileImageUrl").setValue(imageUrl).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Toast.makeText(ProfileSetting.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                    refreshActivity(); // Refresh the activity
+                    refreshActivity();
                 } else {
                     Toast.makeText(ProfileSetting.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
             Toast.makeText(ProfileSetting.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-            refreshActivity(); // Refresh the activity
+            refreshActivity();
         }
         saveButton.setEnabled(true);
 
     }
 
     private void refreshActivity() {
-        Intent intent = getIntent(); // Get the intent that started this activity
-        finish(); // Finish the current activity
-        startActivity(intent); // Restart the activity
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out); // Apply fade transition
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
 
 

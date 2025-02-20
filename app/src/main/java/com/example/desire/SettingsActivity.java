@@ -19,10 +19,8 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        // Retrieve userId from Intent
         userId = getIntent().getStringExtra("userId");
 
-        // If userId is still null, fetch it from FirebaseAuth
         if (userId == null) {
             userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         }

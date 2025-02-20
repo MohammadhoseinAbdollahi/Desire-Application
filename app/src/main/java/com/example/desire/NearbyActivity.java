@@ -31,7 +31,7 @@ public class NearbyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_nearby);
 
-        // Initialize NFC adapter
+
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if (nfcAdapter == null) {
             Toast.makeText(this, "NFC is not available on this device.", Toast.LENGTH_SHORT).show();
@@ -40,7 +40,7 @@ public class NearbyActivity extends AppCompatActivity {
         }
 
 pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_UPDATE_CURRENT);
-        // Initialize Firebase
+
         FirebaseUser currentUserAuth = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUserAuth != null) {
             userId = currentUserAuth.getUid();
@@ -98,19 +98,19 @@ pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).
     }
 
     private void handleNfcTag(Tag tag) {
-        // Simulate getting the other user's ID from the NFC tag
+
         String otherUserId = "otherUserIdFromTag";
 
-        // Check if the users have already exchanged ratings
+
         if (currentUser.rateddesire.contains(otherUserId)) {
             Toast.makeText(this, "You have already exchanged ratings with this user.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Rate the other user
+
        currentUser.rateUser(otherUserId, (int) (2 * currentUser.rating));
 
-        // Add each other to the exchanged ratings list
+
         currentUser.rateddesire.add(otherUserId);
         mDatabase.child("users").child(userId).child("rateddesire").setValue(currentUser.rateddesire);
     }

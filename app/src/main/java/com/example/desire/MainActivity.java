@@ -26,12 +26,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Firebase
+
         FirebaseApp.initializeApp(this);
 
         setContentView(R.layout.activity_main);
 
-        // Display the GIF
+
         ImageView splashImage = findViewById(R.id.splash_image);
         if (splashImage != null) {
             Glide.with(this).load(R.drawable.startlogo).into(splashImage);
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Splash image view is null", Toast.LENGTH_SHORT).show();
         }
 
-        // Delay and check login status after verifying post expirations
+
         new Handler().postDelayed(this::checkExpiredPostsAndProceed, SPLASH_DISPLAY_LENGTH);
     }
 
@@ -53,19 +53,18 @@ public class MainActivity extends AppCompatActivity {
                     Post post = postSnapshot.getValue(Post.class);
                     if (post != null && post.isVisibility()) {
                         if (isPostExpired(post.getEndDate())) {
-                            // Update visibility to false if expired
+
                             postSnapshot.getRef().child("visibility").setValue(false);
                         }
                     }
                 }
-                // After checking and updating expired posts, proceed to login status check
+
                 checkLoginStatus();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-//                Toast.makeText(MainActivity.this, "Failed to check post expirations", Toast.LENGTH_SHORT).show();
-                // Proceed with login status check regardless
+
                 checkLoginStatus();
             }
         });
@@ -105,10 +104,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // User exists in the database, proceed to profile
+
                     redirectToProfile(userId);
                 } else {
-                    // User does not exist in the database, redirect to login
+
                     Toast.makeText(MainActivity.this, "User not found. Please log in again.", Toast.LENGTH_SHORT).show();
                     redirectToLogin();
                 }
