@@ -64,17 +64,25 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         // Display actual username instead of "@username"
         holder.username.setText(post.getUsername() != null ? post.getUsername() : "Unknown User");
 
-        // Double Click to Open Comments
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             private long lastClickTime = 0;
 
             @Override
             public void onClick(View v) {
-                long clickTime = System.currentTimeMillis();
-                if (clickTime - lastClickTime < 300) { // Double click detected
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
+                        ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                        : "";
+                // If the post belongs to the current user, use double-click detection
+                if (currentUserId.equals(post.getUserId())) {
+                    long clickTime = System.currentTimeMillis();
+                    if (clickTime - lastClickTime < 300) { // Double click detected
+                        openCommentsBottomSheet(post, holder);
+                    }
+                    lastClickTime = clickTime;
+                } else {
+                    // For posts from other users, open the comment section on a single click
                     openCommentsBottomSheet(post, holder);
                 }
-                lastClickTime = clickTime;
             }
         });
 
@@ -97,7 +105,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         return postList.size();
     }
 
-    private void openCommentsBottomSheet(Post post, DesireViewHolder holder) {
+    public void openCommentsBottomSheet(Post post, DesireViewHolder holder) {
         Context baseContext = holder.itemView.getContext();
         if (baseContext == null) return; // Avoid crashes
 
@@ -160,6 +168,7 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
         bottomSheetDialog.show();
     }
 
+    // IMPORTANT CHANGE: Instead of generating a push key, we use the userId as the key.
     private void addCommentToPost(Post post, String commentText, Comments commentsAdapter) {
         if (post.getPostId() == null) {
             if (context != null) {
@@ -181,42 +190,39 @@ public class DesireAdapter extends RecyclerView.Adapter<DesireAdapter.DesireView
             return;
         }
 
-        // Push a new unique comment
-        String commentId = postRef.push().getKey();
-        if (commentId != null) {
-            postRef.child(commentId).setValue(commentText).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    post.loadComments(new Post.CommentsLoadCallback() {
-                        @Override
-                        public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
-                            commentsAdapter.clearComments();
+        // Instead of using a generated key, use the userId so that the key in the database is the commenter’s ID.
+        postRef.child(userId).setValue(commentText).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                post.loadComments(new Post.CommentsLoadCallback() {
+                    @Override
+                    public void onCommentsLoaded(List<Map.Entry<String, String>> comments) {
+                        commentsAdapter.clearComments();
 
-                            Map<String, String> commentsMap = new HashMap<>();
-                            for (Map.Entry<String, String> entry : comments) {
-                                commentsMap.put(entry.getKey(), entry.getValue());
-                            }
-                            commentsAdapter.setComments(commentsMap);
-                            commentsAdapter.notifyDataSetChanged();
-
-                            if (context != null) {
-                                Toast.makeText(context, "Comment added", Toast.LENGTH_SHORT).show();
-                            }
+                        Map<String, String> commentsMap = new HashMap<>();
+                        for (Map.Entry<String, String> entry : comments) {
+                            commentsMap.put(entry.getKey(), entry.getValue());
                         }
+                        commentsAdapter.setComments(commentsMap);
+                        commentsAdapter.notifyDataSetChanged();
 
-                        @Override
-                        public void onError(Exception e) {
-                            if (context != null) {
-                                Toast.makeText(context, "Failed to reload comments", Toast.LENGTH_SHORT).show();
-                            }
+                        if (context != null) {
+                            Toast.makeText(context, "Comment added", Toast.LENGTH_SHORT).show();
                         }
-                    });
-                } else {
-                    if (context != null) {
-                        Toast.makeText(context, "Failed to add comment", Toast.LENGTH_SHORT).show();
                     }
+
+                    @Override
+                    public void onError(Exception e) {
+                        if (context != null) {
+                            Toast.makeText(context, "Failed to reload comments", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            } else {
+                if (context != null) {
+                    Toast.makeText(context, "Failed to add comment", Toast.LENGTH_SHORT).show();
                 }
-            });
-        }
+            }
+        });
     }
 
     private void confirmDeletePost(Post post, int position) {

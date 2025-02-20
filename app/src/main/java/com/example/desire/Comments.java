@@ -117,7 +117,7 @@ public class Comments extends RecyclerView.Adapter<Comments.CommentViewHolder> {
         updateCommentsCount();
     }
 
-
+    // Helper method to update the "commentsCount" attribute in the post node in Firebase
     private void updateCommentsCount() {
         if (postId != null && !postId.isEmpty()) {
             DatabaseReference postRef = FirebaseDatabase.getInstance().getReference("posts").child(postId);
